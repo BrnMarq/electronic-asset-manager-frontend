@@ -15,51 +15,51 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <Layout>{children}</Layout> : <Navigate to="/" />;
+	const { isAuthenticated } = useAuth();
+	return isAuthenticated ? <Layout>{children}</Layout> : <Navigate to='/' />;
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <AssetsProvider>
-            <Routes>
-              <Route path="/" element={<Login />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/assets"
-                element={
-                  <ProtectedRoute>
-                    <Assets />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/changelog"
-                element={
-                  <ProtectedRoute>
-                    <Changelog />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AssetsProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+	<QueryClientProvider client={queryClient}>
+		<TooltipProvider>
+			<Toaster />
+			<Sonner />
+			<BrowserRouter>
+				<AuthProvider>
+					<AssetsProvider>
+						<Routes>
+							<Route path='/' element={<Login />} />
+							<Route
+								path='/dashboard'
+								element={
+									<ProtectedRoute>
+										<Dashboard />
+									</ProtectedRoute>
+								}
+							/>
+							<Route
+								path='/assets'
+								element={
+									<ProtectedRoute>
+										<Assets />
+									</ProtectedRoute>
+								}
+							/>
+							<Route
+								path='/changelog'
+								element={
+									<ProtectedRoute>
+										<Changelog />
+									</ProtectedRoute>
+								}
+							/>
+							<Route path='*' element={<NotFound />} />
+						</Routes>
+					</AssetsProvider>
+				</AuthProvider>
+			</BrowserRouter>
+		</TooltipProvider>
+	</QueryClientProvider>
 );
 
 export default App;
