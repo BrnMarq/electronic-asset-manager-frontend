@@ -5,6 +5,7 @@ import {
 	useEffect,
 	ReactNode,
 } from "react";
+import { jwtDecode } from "jwt-decode";
 import { User, AuthContextType } from "@/types";
 import api from "@/lib/axios";
 
@@ -25,15 +26,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		password: string
 	): Promise<boolean> => {
 		try {
-			// Call placeholder backend endpoint
 			const response = await api.post("/auth/login", {
 				username,
 				password,
 			});
 
-			const { token, user } = response.data;
+			const { token } = response.data;
+			const user = jwtDecode<User>(token);
 
-			// Store token and user data
 			localStorage.setItem("authToken", token);
 			localStorage.setItem("currentUser", JSON.stringify(user));
 			setUser(user);

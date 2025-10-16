@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Configure axios instance
 const api = axios.create({
-	baseURL: "https://electronic-asset-manager-backend.vercel.app",
+	baseURL: import.meta.env.VITE_BACKEND_URL || "http://localhost:3000/api",
 	timeout: 10000,
 	headers: {
 		"Content-Type": "application/json",
