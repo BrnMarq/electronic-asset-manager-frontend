@@ -3,70 +3,125 @@ export type UserRole = "admin" | "manager" | "inventory";
 export type AssetStatus = "active" | "inactive" | "decommissioned";
 
 export interface User {
-  id: string;
-  username: string;
-  email: string;
-  role: UserRole;
-  createdAt: string;
+	id: number;
+	username: string;
+	email: string;
+	role: UserRole;
+	createdAt: string;
 }
 
 export interface AssetType {
-  id: string;
-  name: string;
-  category: string;
+	id: number;
+	name: string;
+	category: string;
 }
 
 export interface Location {
-  id: string;
-  name: string;
-  description?: string;
+	id: number;
+	name: string;
+	description?: string;
+}
+
+export interface AssetForm {
+	id: number;
+	name: string;
+	type_id: number;
+	description?: string;
+	serial_number: number;
+	responsible_id: number;
+	location_id: number;
+	cost: number;
+	status: AssetStatus;
+	acquisition_date: string; // ISO date string
+	created_at: string;
+	created_by: number;
+}
+
+export interface AssetFilter {
+	name?: string;
+	serial_number?: number;
+	type_id?: number;
+	description?: string;
+	location_id?: number;
+	status?: AssetStatus;
+	responsible_id?: number;
+	page?: number;
+	limit?: number;
+	cost?: number;
 }
 
 export interface Asset {
-  id: string;
-  name: string;
-  type: string;
-  subtype?: string;
-  description?: string;
-  serialNumber?: string;
-  responsible: string;
-  location: string;
-  cost: number;
-  status: AssetStatus;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
+	id: number;
+	name: string;
+	serial_number: number;
+	type_id: number;
+	description: string | null;
+	responsible_id: number;
+	location_id: number;
+	status: AssetStatus;
+	cost: number;
+	acquisition_date: string;
+	created_by: number;
+	location: {
+		id: number;
+		name: string;
+	};
+	type: {
+		id: number;
+		name: string;
+	};
+	responsible: {
+		id: number;
+		first_name: string;
+		last_name: string;
+	};
+}
+
+export interface AssetInfo {
+	assets: Asset[];
+	total: number;
 }
 
 export interface ChangelogEntry {
-  id: string;
-  assetId: string;
-  action: "created" | "updated" | "relocated" | "cost_updated" | "status_changed" | "decommissioned";
-  changes: {
-    field: string;
-    oldValue: string | number;
-    newValue: string | number;
-  }[];
-  userId: string;
-  username: string;
-  timestamp: string;
+	id: string;
+	assetId: string;
+	action:
+		| "created"
+		| "updated"
+		| "relocated"
+		| "cost_updated"
+		| "status_changed"
+		| "decommissioned";
+	changes: {
+		field: string;
+		oldValue: string | number;
+		newValue: string | number;
+	}[];
+	userId: string;
+	username: string;
+	timestamp: string;
 }
 
 export interface AuthContextType {
-  user: User | null;
-  login: (username: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  isAuthenticated: boolean;
+	user: User | null;
+	login: (username: string, password: string) => Promise<boolean>;
+	logout: () => void;
+	isAuthenticated: boolean;
 }
 
 export interface AssetsContextType {
-  assets: Asset[];
-  changelog: ChangelogEntry[];
-  addAsset: (asset: Omit<Asset, "id" | "createdAt" | "updatedAt" | "createdBy">) => void;
-  updateAsset: (id: string, updates: Partial<Asset>) => void;
-  deleteAsset: (id: string) => void;
-  relocateAsset: (id: string, location: string, responsible: string) => void;
-  updateCost: (id: string, cost: number) => void;
-  changeStatus: (id: string, status: AssetStatus) => void;
-  getAssetChangelog: (assetId: string) => ChangelogEntry[];
+	assetsInfo: AssetInfo;
+	locations: Location[];
+	types: AssetType[];
+	users: User[];
+	fetchAssets: (page?: number, limit?: number) => void;
+	fetchCreateInfo: () => void;
+	addAsset: (
+		asset: Omit<
+			AssetForm,
+			"id" | "created_at" | "created_by" | "acquisition_date"
+		>
+	) => void;
+	updateAsset: (id: number, updates: Partial<AssetForm>) => void;
+	deleteAsset: (id: number) => void;
 }

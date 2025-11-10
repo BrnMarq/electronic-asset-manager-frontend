@@ -1,11 +1,24 @@
 import { useEffect, useState } from "react";
 import { useAssets } from "@/contexts/AssetsContext";
-import { Asset, AssetStatus } from "@/types";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Asset, AssetForm, AssetStatus } from "@/types";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
@@ -13,246 +26,315 @@ import { Trash2 } from "lucide-react";
 import AssetHistory from "./AssetHistory";
 
 interface AssetDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  asset?: Asset;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	asset?: Asset;
 }
 
-export default function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
-  const { addAsset, updateAsset, deleteAsset, changeStatus } = useAssets();
-  const [formData, setFormData] = useState({
-    name: "",
-    type: "",
-    subtype: "",
-    description: "",
-    serialNumber: "",
-    responsible: "",
-    location: "",
-    cost: 0,
-    status: "active" as AssetStatus,
-  });
+export default function AssetDialog({
+	open,
+	onOpenChange,
+	asset,
+}: AssetDialogProps) {
+	const { addAsset, updateAsset, deleteAsset, locations, types, users } =
+		useAssets();
+	const [formData, setFormData] = useState<
+		Omit<AssetForm, "id" | "created_at" | "created_by" | "acquisition_date">
+	>({
+		name: "",
+		type_id: 0,
+		description: "",
+		serial_number: 0,
+		responsible_id: 0,
+		location_id: 0,
+		cost: 0,
+		status: "active" as AssetStatus,
+	});
 
-  useEffect(() => {
-    if (asset) {
-      setFormData({
-        name: asset.name,
-        type: asset.type,
-        subtype: asset.subtype || "",
-        description: asset.description || "",
-        serialNumber: asset.serialNumber || "",
-        responsible: asset.responsible,
-        location: asset.location,
-        cost: asset.cost,
-        status: asset.status,
-      });
-    } else {
-      setFormData({
-        name: "",
-        type: "",
-        subtype: "",
-        description: "",
-        serialNumber: "",
-        responsible: "",
-        location: "",
-        cost: 0,
-        status: "active",
-      });
-    }
-  }, [asset, open]);
+	useEffect(() => {
+		if (asset) {
+			setFormData({
+				name: asset.name,
+				type_id: asset.type_id,
+				description: asset.description || "",
+				serial_number: asset.serial_number || 0,
+				responsible_id: asset.responsible_id,
+				location_id: asset.location_id,
+				cost: asset.cost,
+				status: asset.status,
+			});
+			return;
+		}
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+		setFormData({
+			name: "",
+			type_id: 0,
+			description: "",
+			serial_number: 0,
+			responsible_id: 0,
+			location_id: 0,
+			cost: 0,
+			status: "active" as AssetStatus,
+		});
+	}, [asset, open]);
 
-    if (asset) {
-      updateAsset(asset.id, formData);
-      toast({
-        title: "Activo actualizado",
-        description: "Los cambios se guardaron correctamente",
-      });
-    } else {
-      addAsset(formData);
-      toast({
-        title: "Activo creado",
-        description: "El activo se agregó al inventario",
-      });
-    }
+	const handleSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
 
-    onOpenChange(false);
-  };
+		if (asset) {
+			updateAsset(asset.id, formData);
+			toast({
+				title: "Activo actualizado",
+				description: "Los cambios se guardaron correctamente",
+			});
+			return;
+		}
 
-  const handleDelete = () => {
-    if (asset && confirm("¿Estás seguro de eliminar este activo?")) {
-      deleteAsset(asset.id);
-      toast({
-        title: "Activo eliminado",
-        description: "El activo fue removido del inventario",
-      });
-      onOpenChange(false);
-    }
-  };
+		addAsset(formData);
+		toast({
+			title: "Activo creado",
+			description: "El activo se agregó al inventario",
+		});
 
-  const handleStatusChange = (status: AssetStatus) => {
-    if (asset) {
-      changeStatus(asset.id, status);
-      setFormData({ ...formData, status });
-      toast({
-        title: "Estado actualizado",
-        description: `El activo ahora está ${status}`,
-      });
-    }
-  };
+		onOpenChange(false);
+	};
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{asset ? "Editar Activo" : "Nuevo Activo"}</DialogTitle>
-          <DialogDescription>
-            {asset ? "Modifica la información del activo" : "Completa el formulario para agregar un nuevo activo"}
-          </DialogDescription>
-        </DialogHeader>
+	const handleDelete = () => {
+		if (asset && confirm("¿Estás seguro de eliminar este activo?")) {
+			deleteAsset(asset.id);
+			toast({
+				title: "Activo eliminado",
+				description: "El activo fue removido del inventario",
+			});
+			onOpenChange(false);
+		}
+	};
 
-        <Tabs defaultValue="info" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="info">Información</TabsTrigger>
-            {asset && <TabsTrigger value="history">Historial</TabsTrigger>}
-          </TabsList>
+	const handleStatusChange = (status: AssetStatus) => {
+		if (asset) {
+			setFormData({ ...formData, status });
+			toast({
+				title: "Estado actualizado",
+				description: `El activo ahora está ${status}`,
+			});
+		}
+	};
 
-          <TabsContent value="info">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nombre *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="type">Tipo *</Label>
-                  <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Hardware">Hardware</SelectItem>
-                      <SelectItem value="Software">Software</SelectItem>
-                      <SelectItem value="Mobiliario">Mobiliario</SelectItem>
-                      <SelectItem value="Otro">Otro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+				<DialogHeader>
+					<DialogTitle>{asset ? "Editar Activo" : "Nuevo Activo"}</DialogTitle>
+					<DialogDescription>
+						{asset
+							? "Modifica la información del activo"
+							: "Completa el formulario para agregar un nuevo activo"}
+					</DialogDescription>
+				</DialogHeader>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="subtype">Subtipo</Label>
-                  <Input
-                    id="subtype"
-                    value={formData.subtype}
-                    onChange={(e) => setFormData({ ...formData, subtype: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="serialNumber">Número de Serie</Label>
-                  <Input
-                    id="serialNumber"
-                    value={formData.serialNumber}
-                    onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
-                  />
-                </div>
-              </div>
+				<Tabs defaultValue='info' className='w-full'>
+					<TabsList className='grid w-full grid-cols-2'>
+						<TabsTrigger value='info'>Información</TabsTrigger>
+						{asset && <TabsTrigger value='history'>Historial</TabsTrigger>}
+					</TabsList>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Descripción</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
+					<TabsContent value='info'>
+						<form onSubmit={handleSubmit} className='space-y-4'>
+							<div className='grid grid-cols-2 gap-4'>
+								<div className='space-y-2'>
+									<Label htmlFor='name'>Nombre *</Label>
+									<Input
+										id='name'
+										value={formData.name}
+										onChange={(e) =>
+											setFormData({ ...formData, name: e.target.value })
+										}
+										required
+									/>
+								</div>
+								<div className='space-y-2'>
+									<Label htmlFor='type'>Tipo *</Label>
+									<Select
+										value={String(formData.type_id)}
+										onValueChange={(value) =>
+											setFormData({ ...formData, type_id: parseInt(value, 10) })
+										}
+										required
+									>
+										<SelectTrigger>
+											<SelectValue placeholder='Seleccionar tipo' />
+										</SelectTrigger>
+										<SelectContent>
+											{types.map((type) => (
+												<SelectItem key={type.id} value={String(type.id)}>
+													{type.name} ({type.category})
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="responsible">Responsable *</Label>
-                  <Input
-                    id="responsible"
-                    value={formData.responsible}
-                    onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Ubicación *</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
+							<div className='grid grid-cols-2 gap-4'>
+								<div className='space-y-2'>
+									<Label htmlFor='serial_number'>Número de Serie</Label>
+									<Input
+										id='serial_number'
+										value={formData.serial_number}
+										onChange={(e) => {
+											const value = parseInt(e.target.value, 10);
+											if (!isNaN(value)) {
+												setFormData({ ...formData, serial_number: value });
+											}
+										}}
+									/>
+								</div>
+							</div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cost">Costo *</Label>
-                  <Input
-                    id="cost"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={formData.cost}
-                    onChange={(e) => setFormData({ ...formData, cost: parseFloat(e.target.value) || 0 })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="status">Estado *</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value: AssetStatus) => asset ? handleStatusChange(value) : setFormData({ ...formData, status: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Activo</SelectItem>
-                      <SelectItem value="inactive">Inactivo</SelectItem>
-                      <SelectItem value="decommissioned">Desincorporado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+							<div className='space-y-2'>
+								<Label htmlFor='description'>Descripción</Label>
+								<Textarea
+									id='description'
+									value={formData.description}
+									onChange={(e) =>
+										setFormData({ ...formData, description: e.target.value })
+									}
+									rows={3}
+								/>
+							</div>
 
-              <DialogFooter className="flex justify-between">
-                <div>
-                  {asset && (
-                    <Button type="button" variant="destructive" onClick={handleDelete}>
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar
-                    </Button>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit">{asset ? "Guardar Cambios" : "Crear Activo"}</Button>
-                </div>
-              </DialogFooter>
-            </form>
-          </TabsContent>
+							<div className='grid grid-cols-2 gap-4'>
+								<div className='space-y-2'>
+									<Label htmlFor='responsible'>Responsable *</Label>
+									<Select
+										value={String(formData.responsible_id)}
+										onValueChange={(value) =>
+											setFormData({
+												...formData,
+												responsible_id: parseInt(value, 10),
+											})
+										}
+										required
+									>
+										<SelectTrigger>
+											<SelectValue placeholder='Seleccionar responsable' />
+										</SelectTrigger>
+										<SelectContent>
+											{users.map((user) => (
+												<SelectItem key={user.id} value={String(user.id)}>
+													{user.username}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+								<div className='space-y-2'>
+									<Label htmlFor='location'>Ubicación *</Label>
+									<Select
+										value={String(formData.location_id)}
+										onValueChange={(value) =>
+											setFormData({
+												...formData,
+												location_id: parseInt(value, 10),
+											})
+										}
+										required
+									>
+										<SelectTrigger>
+											<SelectValue placeholder='Seleccionar responsable' />
+										</SelectTrigger>
+										<SelectContent>
+											{locations.map((location) => (
+												<SelectItem
+													key={location.id}
+													value={String(location.id)}
+												>
+													{location.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
 
-          {asset && (
-            <TabsContent value="history">
-              <AssetHistory assetId={asset.id} />
-            </TabsContent>
-          )}
-        </Tabs>
-      </DialogContent>
-    </Dialog>
-  );
+							<div className='grid grid-cols-2 gap-4'>
+								<div className='space-y-2'>
+									<Label htmlFor='cost'>Costo *</Label>
+									<Input
+										id='cost'
+										type='number'
+										min='0'
+										step='0.01'
+										value={formData.cost}
+										onChange={(e) =>
+											setFormData({
+												...formData,
+												cost: parseFloat(e.target.value) || 0,
+											})
+										}
+										required
+									/>
+								</div>
+								<div className='space-y-2'>
+									<Label htmlFor='status'>Estado *</Label>
+									<Select
+										value={formData.status}
+										onValueChange={(value: AssetStatus) =>
+											asset
+												? handleStatusChange(value)
+												: setFormData({ ...formData, status: value })
+										}
+									>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value='active'>Activo</SelectItem>
+											<SelectItem value='inactive'>Inactivo</SelectItem>
+											<SelectItem value='decommissioned'>
+												Desincorporado
+											</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+							</div>
+
+							<DialogFooter className='flex justify-between'>
+								<div>
+									{asset && (
+										<Button
+											type='button'
+											variant='destructive'
+											onClick={handleDelete}
+										>
+											<Trash2 className='h-4 w-4 mr-2' />
+											Eliminar
+										</Button>
+									)}
+								</div>
+								<div className='flex gap-2'>
+									<Button
+										type='button'
+										variant='outline'
+										onClick={() => onOpenChange(false)}
+									>
+										Cancelar
+									</Button>
+									<Button type='submit'>
+										{asset ? "Guardar Cambios" : "Crear Activo"}
+									</Button>
+								</div>
+							</DialogFooter>
+						</form>
+					</TabsContent>
+
+					{asset && (
+						<TabsContent value='history'>
+							<AssetHistory assetId={String(asset.id)} />
+						</TabsContent>
+					)}
+				</Tabs>
+			</DialogContent>
+		</Dialog>
+	);
 }
