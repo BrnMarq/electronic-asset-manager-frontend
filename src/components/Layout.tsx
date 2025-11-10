@@ -26,6 +26,7 @@ export default function Layout({ children }: LayoutProps) {
 		{ path: "/assets", label: "Activos", icon: Package },
 		{ path: "/locations", label: "Ubicaciones", icon: Package },
 		{ path: "/types", label: "Tipos", icon: Package },
+		{ path: "/users", label: "Usuarios", icon: Package },
 		{ path: "/changelog", label: "Historial", icon: History },
 	];
 

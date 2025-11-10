@@ -7,14 +7,16 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { AssetsProvider } from "./contexts/AssetsContext";
 import { LocationsProvider } from "./contexts/LocationsContext";
 import { TypesProvider } from "./contexts/TypesContext";
+import { UsersProvider } from "./contexts/UsersContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Assets from "./pages/Assets";
 import Locations from "./pages/Locations";
+import Types from "./pages/Types";
+import Users from "./pages/Users";
 import Changelog from "./pages/Changelog";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
-import Types from "./pages/Types";
 
 const queryClient = new QueryClient();
 
@@ -33,50 +35,60 @@ const App = () => (
 					<AssetsProvider>
 						<LocationsProvider>
 							<TypesProvider>
-								<Routes>
-									<Route path='/' element={<Login />} />
-									<Route
-										path='/dashboard'
-										element={
-											<ProtectedRoute>
-												<Dashboard />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/assets'
-										element={
-											<ProtectedRoute>
-												<Assets />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/changelog'
-										element={
-											<ProtectedRoute>
-												<Changelog />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/locations'
-										element={
-											<ProtectedRoute>
-												<Locations />
-											</ProtectedRoute>
-										}
-									/>
-									<Route
-										path='/types'
-										element={
-											<ProtectedRoute>
-												<Types />
-											</ProtectedRoute>
-										}
-									/>
-									<Route path='*' element={<NotFound />} />
-								</Routes>
+								<UsersProvider>
+									<Routes>
+										<Route path='/' element={<Login />} />
+										<Route
+											path='/dashboard'
+											element={
+												<ProtectedRoute>
+													<Dashboard />
+												</ProtectedRoute>
+											}
+										/>
+										<Route
+											path='/assets'
+											element={
+												<ProtectedRoute>
+													<Assets />
+												</ProtectedRoute>
+											}
+										/>
+										<Route
+											path='/changelog'
+											element={
+												<ProtectedRoute>
+													<Changelog />
+												</ProtectedRoute>
+											}
+										/>
+										<Route
+											path='/locations'
+											element={
+												<ProtectedRoute>
+													<Locations />
+												</ProtectedRoute>
+											}
+										/>
+										<Route
+											path='/types'
+											element={
+												<ProtectedRoute>
+													<Types />
+												</ProtectedRoute>
+											}
+										/>
+										<Route
+											path='/users'
+											element={
+												<ProtectedRoute>
+													<Users />
+												</ProtectedRoute>
+											}
+										/>
+										<Route path='*' element={<NotFound />} />
+									</Routes>
+								</UsersProvider>
 							</TypesProvider>
 						</LocationsProvider>
 					</AssetsProvider>

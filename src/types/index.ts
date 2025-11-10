@@ -6,8 +6,19 @@ export interface User {
 	id: number;
 	username: string;
 	email: string;
+	first_name: string;
+	last_name: string;
 	role: UserRole;
 	createdAt: string;
+}
+
+export interface UserForm {
+	username: string;
+	email: string;
+	first_name: string;
+	last_name: string;
+	role: UserRole;
+	password: string;
 }
 
 export interface AssetType {
@@ -143,6 +154,13 @@ export interface TypesContextType {
 	deleteType: (id: number) => void;
 }
 
-export interface UserContextType {
+export interface UsersContextType {
 	users: User[];
+	fetchUsers: () => void;
+	addUser: (user: Omit<User, "id" | "createdAt">) => void;
+	updateUser: (
+		id: number,
+		updates: Partial<Omit<User, "id" | "createdAt">>
+	) => void;
+	deleteUser: (id: number) => void;
 }
