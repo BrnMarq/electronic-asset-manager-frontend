@@ -36,8 +36,15 @@ export default function AssetDialog({
 	onOpenChange,
 	asset,
 }: AssetDialogProps) {
-	const { addAsset, updateAsset, deleteAsset, locations, types, users } =
-		useAssets();
+	const {
+		addAsset,
+		updateAsset,
+		deleteAsset,
+		fetchCreateInfo,
+		locations,
+		types,
+		users,
+	} = useAssets();
 	const [formData, setFormData] = useState<
 		Omit<AssetForm, "id" | "created_at" | "created_by" | "acquisition_date">
 	>({
@@ -50,6 +57,17 @@ export default function AssetDialog({
 		cost: 0,
 		status: "active" as AssetStatus,
 	});
+
+	useEffect(() => {
+		if (
+			open &&
+			locations.length === 0 &&
+			types.length === 0 &&
+			users.length === 0
+		) {
+			fetchCreateInfo();
+		}
+	}, [fetchCreateInfo, open, locations.length, types.length, users.length]);
 
 	useEffect(() => {
 		if (asset) {

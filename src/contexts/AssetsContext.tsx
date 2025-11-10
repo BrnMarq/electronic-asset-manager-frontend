@@ -2,7 +2,7 @@ import {
 	createContext,
 	useContext,
 	useState,
-	useEffect,
+	useCallback,
 	ReactNode,
 } from "react";
 import {
@@ -28,11 +28,7 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 	const [types, setTypes] = useState<AssetType[]>([]);
 	const [users, setUsers] = useState<User[]>([]);
 
-	useEffect(() => {
-		fetchCreateInfo();
-	}, []);
-
-	const fetchCreateInfo = async () => {
+	const fetchCreateInfo = useCallback(async () => {
 		try {
 			const response = await api.get("/assets/create-info");
 			setLocations(response.data.locations);
@@ -41,21 +37,25 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 		} catch (error) {
 			console.error("Error fetching assets:", error);
 		}
-	};
+	}, []);
 
-	const fetchAssets = async (page = 1, limit = 10) => {
-		try {
-			const response = await api.get("/assets", {
-				params: {
-					page,
-					limit,
-				},
-			});
-			setAssetsInfo(response.data);
-		} catch (error) {
-			console.error("Error fetching assets:", error);
-		}
-	};
+	const fetchAssets = useCallback(
+		async (page = 1, limit = 10, filters = {}) => {
+			try {
+				const response = await api.get("/assets", {
+					params: {
+						page,
+						limit,
+						...filters,
+					},
+				});
+				setAssetsInfo(response.data);
+			} catch (error) {
+				console.error("Error fetching assets:", error);
+			}
+		},
+		[]
+	);
 
 	const addAsset = async (
 		assetData: Omit<

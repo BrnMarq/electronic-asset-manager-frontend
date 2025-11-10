@@ -114,7 +114,7 @@ export interface AssetsContextType {
 	locations: Location[];
 	types: AssetType[];
 	users: User[];
-	fetchAssets: (page?: number, limit?: number) => void;
+	fetchAssets: (page?: number, limit?: number, filters?: AssetFilter) => void;
 	fetchCreateInfo: () => void;
 	addAsset: (
 		asset: Omit<

@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Download, Filter, X } from "lucide-react";
 import AssetDialog from "@/components/AssetDialog";
-import { Asset, AssetForm } from "@/types";
+import { Asset, AssetFilter, AssetStatus } from "@/types";
 import {
 	Pagination,
 	PaginationContent,
@@ -30,24 +30,27 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 
+const defaultFilters: AssetFilter = {
+	name: "",
+	serial_number: 0,
+	type_id: 0,
+	description: "",
+	responsible_id: 0,
+	location_id: 0,
+	status: "" as AssetStatus,
+	cost: 0,
+};
+
 export default function Assets() {
-	const { assetsInfo, fetchAssets, locations, types, users } = useAssets();
-	const [search, setSearch] = useState("");
+	const { assetsInfo, fetchAssets, fetchCreateInfo, locations, types, users } =
+		useAssets();
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [showFilters, setShowFilters] = useState(false);
 	const [selectedAsset, setSelectedAsset] = useState<Asset | undefined>();
 	const [currentPage, setCurrentPage] = useState(1);
-	const [filters, setFilters] = useState({
-		name: "",
-		serial_number: 0,
-		type_id: 0,
-		description: "",
-		responsible_id: 0,
-		location_id: 0,
-		status: "",
-		cost: 0,
-	});
-	const itemsPerPage = 3;
+	const [filters, setFilters] = useState<AssetFilter>(defaultFilters);
+
+	const itemsPerPage = 10;
 	const assets = assetsInfo.assets;
 	const totalPages = Math.ceil(assetsInfo.total / itemsPerPage);
 
@@ -62,29 +65,39 @@ export default function Assets() {
 	};
 
 	useEffect(() => {
+		if (showFilters) {
+			fetchCreateInfo();
+		}
+	}, [showFilters, fetchCreateInfo]);
+
+	useEffect(() => {
 		fetchAssets(currentPage, itemsPerPage);
 	}, [currentPage, fetchAssets]);
-	// Reset to page 1 when search changes
-	// useEffect(() => {
-	// 	setCurrentPage(1);
-	// }, [search]);
+
+	useEffect(() => {
+		const filtersCopy = { ...filters };
+		Object.keys(filtersCopy).forEach((key) => {
+			if (
+				filtersCopy[key as keyof AssetFilter] === "" ||
+				filtersCopy[key as keyof AssetFilter] === 0 ||
+				filtersCopy[key as keyof AssetFilter] === "no_filter"
+			) {
+				delete filtersCopy[key as keyof AssetFilter];
+			}
+		});
+		const delayDebounce = setTimeout(() => {
+			fetchAssets(currentPage, itemsPerPage, filtersCopy);
+		}, 500);
+		return () => clearTimeout(delayDebounce);
+	}, [currentPage, filters, fetchAssets]);
 
 	const clearFilters = () => {
-		setFilters({
-			name: "",
-			serial_number: 0,
-			type_id: 0,
-			description: "",
-			responsible_id: 0,
-			location_id: 0,
-			status: "",
-			cost: 0,
-		});
-		setSearch("");
+		setFilters(defaultFilters);
 	};
 
-	const hasActiveFilters =
-		Object.values(filters).some((v) => v !== "") || search !== "";
+	const hasActiveFilters = Object.values(filters).some(
+		(v) => v !== "" && v !== 0 && v !== "no_filter"
+	);
 
 	const exportToCSV = () => {
 		return;
@@ -278,7 +291,7 @@ export default function Assets() {
 								<Select
 									value={filters.status}
 									onValueChange={(value) =>
-										setFilters({ ...filters, status: value })
+										setFilters({ ...filters, status: value as AssetStatus })
 									}
 								>
 									<SelectTrigger>
@@ -342,9 +355,6 @@ export default function Assets() {
 							</div>
 						</div>
 					)}
-					<div className='flex justify-end'>
-						<Button onClick={() => {}}>Aplicar Filtros</Button>
-					</div>
 				</CardContent>
 			</Card>
 
