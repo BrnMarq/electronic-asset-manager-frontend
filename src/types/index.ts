@@ -125,3 +125,19 @@ export interface AssetsContextType {
 	updateAsset: (id: number, updates: Partial<AssetForm>) => void;
 	deleteAsset: (id: number) => void;
 }
+
+export interface LocationsContextType {
+	locations: Location[];
+	fetchLocations: () => void;
+	addLocation: (location: Omit<Location, "id">) => void;
+	updateLocation: (id: number, updates: Partial<Location>) => void;
+	deleteLocation: (id: number) => void;
+}
+
+export interface TypeContextType {
+	types: AssetType[];
+}
+
+export interface UserContextType {
+	users: User[];
+}

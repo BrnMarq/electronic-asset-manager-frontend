@@ -5,9 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { AssetsProvider } from "./contexts/AssetsContext";
+import { LocationsProvider } from "./contexts/LocationsContext";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Assets from "./pages/Assets";
+import Locations from "./pages/Locations";
 import Changelog from "./pages/Changelog";
 import Layout from "./components/Layout";
 import NotFound from "./pages/NotFound";
@@ -27,34 +29,44 @@ const App = () => (
 			<BrowserRouter>
 				<AuthProvider>
 					<AssetsProvider>
-						<Routes>
-							<Route path='/' element={<Login />} />
-							<Route
-								path='/dashboard'
-								element={
-									<ProtectedRoute>
-										<Dashboard />
-									</ProtectedRoute>
-								}
-							/>
-							<Route
-								path='/assets'
-								element={
-									<ProtectedRoute>
-										<Assets />
-									</ProtectedRoute>
-								}
-							/>
-							<Route
-								path='/changelog'
-								element={
-									<ProtectedRoute>
-										<Changelog />
-									</ProtectedRoute>
-								}
-							/>
-							<Route path='*' element={<NotFound />} />
-						</Routes>
+						<LocationsProvider>
+							<Routes>
+								<Route path='/' element={<Login />} />
+								<Route
+									path='/dashboard'
+									element={
+										<ProtectedRoute>
+											<Dashboard />
+										</ProtectedRoute>
+									}
+								/>
+								<Route
+									path='/assets'
+									element={
+										<ProtectedRoute>
+											<Assets />
+										</ProtectedRoute>
+									}
+								/>
+								<Route
+									path='/changelog'
+									element={
+										<ProtectedRoute>
+											<Changelog />
+										</ProtectedRoute>
+									}
+								/>
+								<Route
+									path='/locations'
+									element={
+										<ProtectedRoute>
+											<Locations />
+										</ProtectedRoute>
+									}
+								/>
+								<Route path='*' element={<NotFound />} />
+							</Routes>
+						</LocationsProvider>
 					</AssetsProvider>
 				</AuthProvider>
 			</BrowserRouter>

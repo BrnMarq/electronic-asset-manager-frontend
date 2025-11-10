@@ -64,7 +64,10 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 		>
 	) => {
 		if (!user) return;
-		const response = await api.post("/assets", assetData);
+		const response = await api.post("/assets", {
+			...assetData,
+			acquisition_date: new Date().toISOString(),
+		});
 		setAssetsInfo({
 			assets: [...assetsInfo.assets, response.data],
 			total: assetsInfo.total + 1,
@@ -74,7 +77,6 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 	const updateAsset = async (id: number, updates: Partial<AssetForm>) => {
 		if (!user) return;
 		const response = await api.patch(`/assets/${id}`, updates);
-		console.log(response);
 	};
 
 	const deleteAsset = async (id: number) => {
