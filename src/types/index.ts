@@ -14,6 +14,7 @@ export interface AssetType {
 	id: number;
 	name: string;
 	category: string;
+	description?: string;
 }
 
 export interface Location {
@@ -134,8 +135,12 @@ export interface LocationsContextType {
 	deleteLocation: (id: number) => void;
 }
 
-export interface TypeContextType {
+export interface TypesContextType {
 	types: AssetType[];
+	fetchTypes: () => void;
+	addType: (type: Omit<AssetType, "id">) => void;
+	updateType: (id: number, updates: Partial<AssetType>) => void;
+	deleteType: (id: number) => void;
 }
 
 export interface UserContextType {
