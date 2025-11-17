@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAssets } from "@/contexts/AssetsContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import api from "@/lib/axios";
 import {
 	Card,
 	CardContent,
@@ -10,7 +11,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Download, Filter, X } from "lucide-react";
+import { Plus, Download, Filter, X, Loader2 } from "lucide-react";
 import AssetDialog from "@/components/AssetDialog";
 import { Asset, AssetFilter, AssetStatus } from "@/types";
 import {
@@ -29,6 +30,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
 
 const defaultFilters: AssetFilter = {
 	name: "",
@@ -49,6 +51,7 @@ export default function Assets() {
 	const [selectedAsset, setSelectedAsset] = useState<Asset | undefined>();
 	const [currentPage, setCurrentPage] = useState(1);
 	const [filters, setFilters] = useState<AssetFilter>(defaultFilters);
+	const [isExporting, setIsExporting] = useState(false);
 
 	const itemsPerPage = 10;
 	const assets = assetsInfo.assets;
@@ -99,37 +102,61 @@ export default function Assets() {
 		(v) => v !== "" && v !== 0 && v !== "no_filter"
 	);
 
-	const exportToCSV = () => {
-		return;
-		// const headers = [
-		// 	"ID",
-		// 	"Nombre",
-		// 	"Tipo",
-		// 	"Serial",
-		// 	"Responsable",
-		// 	"Ubicación",
-		// 	"Costo",
-		// 	"Estado",
-		// ];
-		// const rows = assets.map((a) => [
-		// 	a.id,
-		// 	a.name,
-		// 	a.type,
-		// 	a.serialNumber || "",
-		// 	a.responsible,
-		// 	a.location,
-		// 	a.cost,
-		// 	a.status,
-		// ]);
+const exportAssets = async () => {
+    if (assetsInfo.total > 0) 
+		{
+        const confirm = window.confirm(
+            `Está a punto de exportar ${assetsInfo.total} activos. ¿Desea continuar?`
+        );
+        if (!confirm) return;
+    }
+	setIsExporting(true);
+	try {
+		const filtersCopy = { ...filters };
+		Object.keys(filtersCopy).forEach((key) => {
+			if (
+				filtersCopy[key as keyof AssetFilter] === "" ||
+				filtersCopy[key as keyof AssetFilter] === 0 ||
+				filtersCopy[key as keyof AssetFilter] === "no_filter"
+			) {
+				delete filtersCopy[key as keyof AssetFilter];
+			}
+		});
 
-		// const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
-		// const blob = new Blob([csv], { type: "text/csv" });
-		// const url = window.URL.createObjectURL(blob);
-		// const a = document.createElement("a");
-		// a.href = url;
-		// a.download = `activos-${new Date().toISOString().split("T")[0]}.csv`;
-		// a.click();
-	};
+		const response = await api.get("/assets/export", {
+			params: filtersCopy,
+			responseType: "blob",
+		});
+
+		const url = window.URL.createObjectURL(response.data);
+		const link = document.createElement("a");
+		link.href = url;
+
+		const contentDisposition = response.headers["content-disposition"];
+		let filename = `Inventario_Activos_${Date.now()}.xlsx`;
+		if (contentDisposition) {
+			const filenameMatch = contentDisposition.match(/filename=([^;]+)/);
+			if (filenameMatch && filenameMatch.length > 1) {
+				filename = filenameMatch[1].replace(/"/g, "");
+			}
+		}
+
+		link.setAttribute("download", filename);
+		document.body.appendChild(link);
+		link.click();
+		link.remove();
+		window.URL.revokeObjectURL(url);
+	} catch (error) {
+		console.error("Error exporting assets:", error);
+		toast({
+			title: "Error de exportación",
+			description: "No se pudo generar el archivo de activos.",
+			variant: "destructive",
+		});
+	} finally {
+		setIsExporting(false);
+	}
+};
 
 	const getStatusBadge = (status: string) => {
 		const variants: Record<
@@ -154,9 +181,13 @@ export default function Assets() {
 					</p>
 				</div>
 				<div className='flex gap-2'>
-					<Button onClick={exportToCSV} variant='outline'>
-						<Download className='h-4 w-4 mr-2' />
-						Exportar
+					<Button onClick={exportAssets} variant='outline' disabled={isExporting}>
+						{isExporting ? (
+							<Loader2 className='h-4 w-4 mr-2 animate-spin' />
+						) : (
+							<Download className='h-4 w-4 mr-2' />
+						)}
+						{isExporting ? "Exportando..." : "Exportar"}
 					</Button>
 					<Button onClick={handleAdd}>
 						<Plus className='h-4 w-4 mr-2' />
