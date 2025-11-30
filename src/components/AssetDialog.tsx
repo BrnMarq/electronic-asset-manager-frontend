@@ -356,7 +356,7 @@ export default function AssetDialog({
 
 					{asset && (
 						<TabsContent value='history'>
-							<AssetHistory assetId={String(asset.id)} />
+							<AssetHistory assetId={String(asset.id)} currentAsset={asset} />
 						</TabsContent>
 					)}
 				</Tabs>

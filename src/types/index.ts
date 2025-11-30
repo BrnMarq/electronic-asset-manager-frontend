@@ -44,7 +44,7 @@ export interface AssetForm {
 	location_id: number;
 	cost: number;
 	status: AssetStatus;
-	acquisition_date: string; // ISO date string
+	acquisition_date: string;
 	created_at: string;
 	created_by: number;
 }
@@ -95,23 +95,33 @@ export interface AssetInfo {
 }
 
 export interface ChangelogEntry {
-	id: string;
-	assetId: string;
-	action:
-		| "created"
-		| "updated"
-		| "relocated"
-		| "cost_updated"
-		| "status_changed"
-		| "decommissioned";
-	changes: {
-		field: string;
-		oldValue: string | number;
-		newValue: string | number;
-	}[];
-	userId: string;
-	username: string;
-	timestamp: string;
+	id: number;
+	asset_id: number;
+	user_id: number;
+	change_type: string; 
+	change_reason?: string;
+	createdAt: string;
+	user?: {
+		id: number;
+		first_name: string;
+		last_name: string;
+	};
+
+	changes?: {
+        field: string;
+        oldValue: any;
+        newValue: any;
+    }[];
+
+	old_name?: string;
+	old_serial_number?: number;
+	old_type_id?: number;
+	old_description?: string;
+	old_responsible_id?: number;
+	old_location_id?: number;
+	old_cost?: number;
+	old_status?: string;
+	old_acquisition_date?: string;
 }
 
 export interface AuthContextType {
@@ -123,7 +133,9 @@ export interface AuthContextType {
 
 export interface AssetsContextType {
 	assetsInfo: AssetInfo;
+	changelog: ChangelogEntry[]; 
 	fetchAssets: (page?: number, limit?: number, filters?: AssetFilter) => void;
+	fetchAssetHistory: (id: number) => Promise<ChangelogEntry[]>;
 	addAsset: (
 		asset: Omit<
 			AssetForm,

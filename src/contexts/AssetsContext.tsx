@@ -5,7 +5,7 @@ import {
 	useCallback,
 	ReactNode,
 } from "react";
-import { AssetInfo, AssetForm, AssetsContextType } from "@/types";
+import { AssetInfo, AssetForm, AssetsContextType, ChangelogEntry } from "@/types";
 import { useAuth } from "./AuthContext";
 import api from "@/lib/axios";
 
@@ -17,6 +17,8 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 		assets: [],
 		total: 0,
 	});
+
+	const [changelog, setChangelog] = useState<ChangelogEntry[]>([]);
 
 	const fetchAssets = useCallback(
 		async (page = 1, limit = 10, filters = {}) => {
@@ -36,6 +38,17 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 		[]
 	);
 
+	const fetchAssetHistory = useCallback(async (id: number) => {
+		if (!user) return [];
+		try {
+			const response = await api.get(`/assets/${id}`);
+			return response.data.changelog || [];
+		} catch (error) {
+			console.error("Error fetching asset history:", error);
+			return [];
+		}
+	}, [user]);
+
 	const addAsset = async (
 		assetData: Omit<
 			AssetForm,
@@ -43,44 +56,59 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 		>
 	) => {
 		if (!user) return;
-		const response = await api.post("/assets", {
-			...assetData,
-			acquisition_date: new Date().toISOString(),
-		});
-		if (response.status === 201)
-			setAssetsInfo({
-				assets: [response.data, ...assetsInfo.assets],
-				total: assetsInfo.total + 1,
+		try {
+			const response = await api.post("/assets", {
+				...assetData,
+				acquisition_date: new Date().toISOString(),
 			});
+			if (response.status === 201) {
+				fetchAssets(); 
+			}
+		} catch (error) {
+			console.error("Error adding asset:", error);
+		}
 	};
 
 	const updateAsset = async (id: number, updates: Partial<AssetForm>) => {
 		if (!user) return;
-		const response = await api.patch(`/assets/${id}`, updates);
-		if (response.status === 200)
-			setAssetsInfo({
-				assets: assetsInfo.assets.map((asset) =>
-					asset.id === id ? response.data.asset : asset
-				),
-				total: assetsInfo.total,
-			});
+		try {
+			const response = await api.patch(`/assets/${id}`, updates);
+			if (response.status === 200) {
+				setAssetsInfo((prev) => ({
+					...prev,
+					assets: prev.assets.map((asset) =>
+						asset.id === id ? response.data.asset : asset
+					),
+				}));
+			}
+		} catch (error) {
+			console.error("Error updating asset:", error);
+		}
 	};
 
 	const deleteAsset = async (id: number) => {
 		if (!user) return;
-		const response = await api.delete(`/assets/${id}`);
-		if (response.status === 200)
-			setAssetsInfo({
-				assets: assetsInfo.assets.filter((asset) => asset.id !== id),
-				total: assetsInfo.total - 1,
-			});
+		try {
+			const response = await api.delete(`/assets/${id}`);
+			if (response.status === 200) {
+				setAssetsInfo((prev) => ({
+					...prev,
+					assets: prev.assets.filter((asset) => asset.id !== id),
+					total: prev.total - 1,
+				}));
+			}
+		} catch (error) {
+			console.error("Error deleting asset:", error);
+		}
 	};
 
 	return (
 		<AssetsContext.Provider
 			value={{
 				assetsInfo,
+				changelog,
 				fetchAssets,
+				fetchAssetHistory,
 				addAsset,
 				updateAsset,
 				deleteAsset,
