@@ -1,5 +1,8 @@
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useEffect, useState } from "react";
 import { useAssets } from "@/contexts/AssetsContext";
+import { useLocations } from "@/contexts/LocationsContext";
+import { useTypes } from "@/contexts/TypesContext";
+import { useUsers } from "@/contexts/UsersContext";
 import { Asset, AssetForm, AssetStatus } from "@/types";
 import {
 	Dialog,
@@ -36,15 +39,10 @@ export default function AssetDialog({
 	onOpenChange,
 	asset,
 }: AssetDialogProps) {
-	const {
-		addAsset,
-		updateAsset,
-		deleteAsset,
-		fetchCreateInfo,
-		locations,
-		types,
-		users,
-	} = useAssets();
+	const { addAsset, updateAsset, deleteAsset } = useAssets();
+	const { locations, fetchLocations } = useLocations();
+	const { types, fetchTypes } = useTypes();
+	const { users, fetchUsers } = useUsers();
 	const [formData, setFormData] = useState<
 		Omit<AssetForm, "id" | "created_at" | "created_by" | "acquisition_date">
 	>({
@@ -58,26 +56,36 @@ export default function AssetDialog({
 		status: "active" as AssetStatus,
 	});
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (
 			open &&
 			locations.length === 0 &&
 			types.length === 0 &&
 			users.length === 0
 		) {
-			fetchCreateInfo();
+			fetchLocations();
+			fetchTypes();
+			fetchUsers();
 		}
-	}, [fetchCreateInfo, open, locations.length, types.length, users.length]);
+	}, [
+		fetchLocations,
+		fetchTypes,
+		fetchUsers,
+		open,
+		locations.length,
+		types.length,
+		users.length,
+	]);
 
 	useEffect(() => {
 		if (asset) {
 			setFormData({
 				name: asset.name,
-				type_id: asset.type_id,
+				type_id: asset.type.id,
 				description: asset.description || "",
 				serial_number: asset.serial_number || 0,
-				responsible_id: asset.responsible_id,
-				location_id: asset.location_id,
+				responsible_id: asset.responsible.id,
+				location_id: asset.location.id,
 				cost: asset.cost,
 				status: asset.status,
 			});
@@ -105,6 +113,7 @@ export default function AssetDialog({
 				title: "Activo actualizado",
 				description: "Los cambios se guardaron correctamente",
 			});
+			onOpenChange(false);
 			return;
 		}
 
@@ -155,7 +164,6 @@ export default function AssetDialog({
 						<TabsTrigger value='info'>Información</TabsTrigger>
 						{asset && <TabsTrigger value='history'>Historial</TabsTrigger>}
 					</TabsList>
-
 					<TabsContent value='info'>
 						<form onSubmit={handleSubmit} className='space-y-4'>
 							<div className='grid grid-cols-2 gap-4'>
@@ -259,7 +267,7 @@ export default function AssetDialog({
 										required
 									>
 										<SelectTrigger>
-											<SelectValue placeholder='Seleccionar responsable' />
+											<SelectValue placeholder='Seleccionar ubicación' />
 										</SelectTrigger>
 										<SelectContent>
 											{locations.map((location) => (

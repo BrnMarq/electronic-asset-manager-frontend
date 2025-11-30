@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAssets } from "@/contexts/AssetsContext";
+import { useLocations } from "@/contexts/LocationsContext";
+import { useTypes } from "@/contexts/TypesContext";
+import { useUsers } from "@/contexts/UsersContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import api from "@/lib/axios";
@@ -44,8 +47,10 @@ const defaultFilters: AssetFilter = {
 };
 
 export default function Assets() {
-	const { assetsInfo, fetchAssets, fetchCreateInfo, locations, types, users } =
-		useAssets();
+	const { assetsInfo, fetchAssets } = useAssets();
+	const { locations, fetchLocations } = useLocations();
+	const { types, fetchTypes } = useTypes();
+	const { users, fetchUsers } = useUsers();
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [showFilters, setShowFilters] = useState(false);
 	const [selectedAsset, setSelectedAsset] = useState<Asset | undefined>();
@@ -69,9 +74,11 @@ export default function Assets() {
 
 	useEffect(() => {
 		if (showFilters) {
-			fetchCreateInfo();
+			fetchLocations();
+			fetchTypes();
+			fetchUsers();
 		}
-	}, [showFilters, fetchCreateInfo]);
+	}, [showFilters, fetchLocations, fetchTypes, fetchUsers]);
 
 	useEffect(() => {
 		fetchAssets(currentPage, itemsPerPage);

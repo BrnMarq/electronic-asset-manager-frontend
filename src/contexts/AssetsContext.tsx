@@ -5,14 +5,7 @@ import {
 	useCallback,
 	ReactNode,
 } from "react";
-import {
-	AssetInfo,
-	AssetForm,
-	AssetsContextType,
-	Location,
-	AssetType,
-	User,
-} from "@/types";
+import { AssetInfo, AssetForm, AssetsContextType } from "@/types";
 import { useAuth } from "./AuthContext";
 import api from "@/lib/axios";
 
@@ -24,20 +17,6 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 		assets: [],
 		total: 0,
 	});
-	const [locations, setLocations] = useState<Location[]>([]);
-	const [types, setTypes] = useState<AssetType[]>([]);
-	const [users, setUsers] = useState<User[]>([]);
-
-	const fetchCreateInfo = useCallback(async () => {
-		try {
-			const response = await api.get("/assets/create-info");
-			setLocations(response.data.locations);
-			setTypes(response.data.types);
-			setUsers(response.data.users);
-		} catch (error) {
-			console.error("Error fetching assets:", error);
-		}
-	}, []);
 
 	const fetchAssets = useCallback(
 		async (page = 1, limit = 10, filters = {}) => {
@@ -68,15 +47,23 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 			...assetData,
 			acquisition_date: new Date().toISOString(),
 		});
-		setAssetsInfo({
-			assets: [...assetsInfo.assets, response.data],
-			total: assetsInfo.total + 1,
-		});
+		if (response.status === 201)
+			setAssetsInfo({
+				assets: [response.data, ...assetsInfo.assets],
+				total: assetsInfo.total + 1,
+			});
 	};
 
 	const updateAsset = async (id: number, updates: Partial<AssetForm>) => {
 		if (!user) return;
 		const response = await api.patch(`/assets/${id}`, updates);
+		if (response.status === 200)
+			setAssetsInfo({
+				assets: assetsInfo.assets.map((asset) =>
+					asset.id === id ? response.data.asset : asset
+				),
+				total: assetsInfo.total,
+			});
 	};
 
 	const deleteAsset = async (id: number) => {
@@ -93,11 +80,7 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 		<AssetsContext.Provider
 			value={{
 				assetsInfo,
-				locations,
-				types,
-				users,
 				fetchAssets,
-				fetchCreateInfo,
 				addAsset,
 				updateAsset,
 				deleteAsset,

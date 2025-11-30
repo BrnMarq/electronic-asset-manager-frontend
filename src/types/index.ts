@@ -123,11 +123,7 @@ export interface AuthContextType {
 
 export interface AssetsContextType {
 	assetsInfo: AssetInfo;
-	locations: Location[];
-	types: AssetType[];
-	users: User[];
 	fetchAssets: (page?: number, limit?: number, filters?: AssetFilter) => void;
-	fetchCreateInfo: () => void;
 	addAsset: (
 		asset: Omit<
 			AssetForm,
