@@ -8,7 +8,10 @@ export interface User {
 	email: string;
 	first_name: string;
 	last_name: string;
-	role: UserRole;
+	role: {
+		id: number;
+		name: UserRole;
+	};
 	createdAt: string;
 }
 
@@ -165,10 +168,10 @@ export interface TypesContextType {
 export interface UsersContextType {
 	users: User[];
 	fetchUsers: () => void;
-	addUser: (user: Omit<User, "id" | "createdAt">) => void;
+	addUser: (user: Omit<UserForm, "id" | "createdAt">) => void;
 	updateUser: (
 		id: number,
-		updates: Partial<Omit<User, "id" | "createdAt">>
+		updates: Partial<Omit<UserForm, "id" | "createdAt">>
 	) => void;
 	deleteUser: (id: number) => void;
 }

@@ -19,6 +19,13 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import {
 	AlertDialog,
 	AlertDialogAction,
 	AlertDialogCancel,
@@ -29,8 +36,14 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { User, UserRole } from "@/types";
+import { User, UserForm, UserRole } from "@/types";
 import { toast } from "@/hooks/use-toast";
+
+const ROLE_NAME_MAP = {
+	admin: "Administrador",
+	manager: "Gerente",
+	inventory: "Inventario",
+};
 
 export default function Users() {
 	const { users, fetchUsers, addUser, updateUser, deleteUser } = useUsers();
@@ -134,7 +147,7 @@ export default function Users() {
 			first_name: user.first_name,
 			last_name: user.last_name,
 			password: "",
-			role: user.role,
+			role: user.role.name,
 		});
 		setIsEditOpen(true);
 	};
@@ -202,6 +215,24 @@ export default function Users() {
 								/>
 							</div>
 							<div className='space-y-2'>
+								<Label htmlFor='role'>Rol</Label>
+								<Select
+									value={formData.role}
+									onValueChange={(value: UserRole) =>
+										setFormData({ ...formData, role: value })
+									}
+								>
+									<SelectTrigger>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value='admin'>Administrador</SelectItem>
+										<SelectItem value='manager'>Gerente</SelectItem>
+										<SelectItem value='inventory'>Inventario</SelectItem>
+									</SelectContent>
+								</Select>
+							</div>
+							<div className='space-y-2'>
 								<Label htmlFor='password'>Password</Label>
 								<Input
 									id='password'
@@ -240,7 +271,9 @@ export default function Users() {
 								<TableCell>{user.first_name}</TableCell>
 								<TableCell>{user.last_name}</TableCell>
 								<TableCell>{user.email}</TableCell>
-								<TableCell className='capitalize'>{user.role}</TableCell>
+								<TableCell className='capitalize'>
+									{ROLE_NAME_MAP[user.role.name]}
+								</TableCell>
 								<TableCell>
 									{new Date(user.createdAt).toLocaleDateString()}
 								</TableCell>
@@ -312,6 +345,25 @@ export default function Users() {
 									setFormData({ ...formData, email: e.target.value })
 								}
 							/>
+						</div>
+
+						<div className='space-y-2'>
+							<Label htmlFor='edit-role'>Rol</Label>
+							<Select
+								value={formData.role}
+								onValueChange={(value: UserRole) =>
+									setFormData({ ...formData, role: value })
+								}
+							>
+								<SelectTrigger>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value='admin'>Administrador</SelectItem>
+									<SelectItem value='manager'>Gerente</SelectItem>
+									<SelectItem value='inventory'>Inventario</SelectItem>
+								</SelectContent>
+							</Select>
 						</div>
 						<div className='space-y-2'>
 							<Label htmlFor='edit-password'>Password</Label>

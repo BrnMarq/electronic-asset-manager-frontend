@@ -9,6 +9,12 @@ import { User, UserForm, UsersContextType } from "@/types";
 import { useAuth } from "./AuthContext";
 import api from "@/lib/axios";
 
+const ROLE_MAP = {
+	admin: 1,
+	manager: 2,
+	inventory: 3,
+};
+
 const UsersContext = createContext<UsersContextType | undefined>(undefined);
 
 export function UsersProvider({ children }: { children: ReactNode }) {
@@ -30,8 +36,7 @@ export function UsersProvider({ children }: { children: ReactNode }) {
 		try {
 			const response = await api.post("/users", {
 				...data,
-				// TODO add proper role handling
-				role_id: 1,
+				role_id: ROLE_MAP[data.role as keyof typeof ROLE_MAP],
 			});
 			setUsers((prev) => [...prev, response.data]);
 		} catch (error) {
@@ -41,11 +46,14 @@ export function UsersProvider({ children }: { children: ReactNode }) {
 
 	const updateUser = async (
 		id: number,
-		data: Partial<Omit<User, "id" | "createdAt">>
+		data: Partial<Omit<UserForm, "id" | "createdAt">>
 	) => {
 		if (!user) return;
 		try {
-			const response = await api.patch(`/users/${id}`, data);
+			const response = await api.patch(`/users/${id}`, {
+				...data,
+				role_id: ROLE_MAP[data.role as keyof typeof ROLE_MAP],
+			});
 			setUsers((prev) =>
 				prev.map((loc) => (loc.id === id ? response.data : loc))
 			);
