@@ -11,6 +11,7 @@ import {
 	AssetsContextType,
 	ChangelogEntry,
 } from "@/types";
+import { toast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthContext";
 import api from "@/lib/axios";
 
@@ -53,16 +54,19 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 		[]
 	);
 
-	const fetchAssetHistory = useCallback(async (id: number) => {
-		if (!user) return [];
-		try {
-			const response = await api.get(`/assets/${id}`);
-			return response.data.changelog || [];
-		} catch (error) {
-			console.error("Error fetching asset history:", error);
-			return [];
-		}
-	}, [user]);
+	const fetchAssetHistory = useCallback(
+		async (id: number) => {
+			if (!user) return [];
+			try {
+				const response = await api.get(`/assets/${id}`);
+				return response.data.changelog || [];
+			} catch (error) {
+				console.error("Error fetching asset history:", error);
+				return [];
+			}
+		},
+		[user]
+	);
 
 	const addAsset = async (
 		assetData: Omit<
@@ -77,8 +81,16 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 				acquisition_date: new Date().toISOString(),
 			});
 			if (response.status === 201) {
-				fetchAssets(); 
+				fetchAssets();
 			}
+			toast({
+				title: response.status === 201 ? "Activo creado" : "Error",
+				description:
+					response.data?.message ??
+					response.data?.errors?.[0]?.msg ??
+					"Error desconocido",
+				variant: response.status === 201 ? "default" : "destructive",
+			});
 		} catch (error) {
 			console.error("Error adding asset:", error);
 		}
@@ -96,6 +108,14 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 					),
 				}));
 			}
+			toast({
+				title: response.status === 200 ? "Activo actualizado" : "Error",
+				description:
+					response.data.message ??
+					response.data.errors[0] ??
+					"Error desconocido",
+				variant: response.status === 200 ? "default" : "destructive",
+			});
 		} catch (error) {
 			console.error("Error updating asset:", error);
 		}
@@ -112,6 +132,15 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 					total: prev.total - 1,
 				}));
 			}
+
+			toast({
+				title: response.status === 200 ? "Activo eliminado" : "Error",
+				description:
+					response.data.message ??
+					response.data.errors[0] ??
+					"Error desconocido",
+				variant: response.status === 200 ? "default" : "destructive",
+			});
 		} catch (error) {
 			console.error("Error deleting asset:", error);
 		}

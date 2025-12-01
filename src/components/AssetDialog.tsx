@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/hooks/use-toast";
 import { Trash2, Eye, Edit, History } from "lucide-react";
 import AssetHistory from "./AssetHistory";
 
@@ -48,17 +47,14 @@ export default function AssetDialog({
 
 	// Estado para las pestañas
 	const [activeTab, setActiveTab] = useState("details");
-
-	// Determinar Rol
-	const roleName = user?.role && typeof user.role === 'object' ? user.role.name : user?.role;
+	const roleName =
+		user?.role && typeof user.role === "object" ? user.role.name : user?.role;
 
 	// Permisos
 	const canEdit = roleName === "admin" || roleName === "manager";
 	const canChangeLocation = roleName === "manager" || roleName === "admin";
 	const canChangeStatus = roleName === "admin";
-	// Permitimos ver historial a todos los que pueden ver el activo, o puedes restringirlo aquí si deseas.
-	// Por ahora todos los roles autenticados pueden ver historial si ya entraron al activo.
-	const canViewHistory = true; 
+	const canViewHistory = roleName === "admin";
 
 	const [formData, setFormData] = useState<
 		Omit<AssetForm, "id" | "created_at" | "created_by" | "acquisition_date">
@@ -121,19 +117,11 @@ export default function AssetDialog({
 
 		if (asset) {
 			updateAsset(asset.id, formData);
-			toast({
-				title: "Activo actualizado",
-				description: "Los cambios se guardaron correctamente",
-			});
 			onOpenChange(false);
 			return;
 		}
 
 		addAsset(formData);
-		toast({
-			title: "Activo creado",
-			description: "El activo se agregó al inventario",
-		});
 
 		onOpenChange(false);
 	};
@@ -141,19 +129,20 @@ export default function AssetDialog({
 	const handleDelete = () => {
 		if (asset && confirm("¿Estás seguro de eliminar este activo?")) {
 			deleteAsset(asset.id);
-			toast({
-				title: "Activo eliminado",
-				description: "El activo fue removido del inventario",
-			});
 			onOpenChange(false);
 		}
 	};
 
-	// Componente auxiliar para visualizar datos sin editar
-	const ReadOnlyField = ({ label, value }: { label: string; value: string | number }) => (
-		<div className="space-y-1">
-			<Label className="text-xs text-muted-foreground">{label}</Label>
-			<div className="p-2 bg-muted/50 rounded-md text-sm font-medium border border-transparent min-h-[36px] flex items-center">
+	const ReadOnlyField = ({
+		label,
+		value,
+	}: {
+		label: string;
+		value: string | number;
+	}) => (
+		<div className='space-y-1'>
+			<Label className='text-xs text-muted-foreground'>{label}</Label>
+			<div className='p-2 bg-muted/50 rounded-md text-sm font-medium border border-transparent min-h-[36px] flex items-center'>
 				{value || "-"}
 			</div>
 		</div>
@@ -175,57 +164,91 @@ export default function AssetDialog({
 					<TabsList className='grid w-full grid-cols-3'>
 						{/* 1. INFORMACIÓN */}
 						<TabsTrigger value='details' disabled={!asset}>
-							<Eye className="w-4 h-4 mr-2" /> Información
+							<Eye className='w-4 h-4 mr-2' /> Información
 						</TabsTrigger>
 
 						{/* 2. EDITAR: Solo si el rol lo permite (Admin/Manager) */}
 						{canEdit && (
 							<TabsTrigger value='edit'>
-								<Edit className="w-4 h-4 mr-2" /> {asset ? "Editar" : "Formulario"}
+								<Edit className='w-4 h-4 mr-2' />{" "}
+								{asset ? "Editar" : "Formulario"}
 							</TabsTrigger>
 						)}
 
-						{/* 3. HISTORIAL */}
-						<TabsTrigger value='history' disabled={!asset || !canViewHistory}>
-							<History className="w-4 h-4 mr-2" /> Historial
-						</TabsTrigger>
+						{asset && canViewHistory && (
+							<TabsTrigger value='history'>
+								<History className='w-4 h-4 mr-2' /> Historial
+							</TabsTrigger>
+						)}
 					</TabsList>
 
 					{asset && (
-						<TabsContent value="details" className="space-y-6 pt-4">
-							<div className="grid grid-cols-2 gap-4">
-								<ReadOnlyField label="Nombre" value={asset.name} />
-								<ReadOnlyField label="Tipo" value={asset.type.name} />
-								<ReadOnlyField label="Categoría" value={asset.type.category} />
-								<ReadOnlyField label="Serial" value={asset.serial_number} />
+						<TabsContent value='details' className='space-y-6 pt-4'>
+							<div className='grid grid-cols-2 gap-4'>
+								<ReadOnlyField label='Nombre' value={asset.name} />
+								<ReadOnlyField label='Tipo' value={asset.type.name} />
+								<ReadOnlyField label='Categoría' value={asset.type.category} />
+								<ReadOnlyField label='Serial' value={asset.serial_number} />
 							</div>
 
-							<ReadOnlyField label="Descripción" value={asset.description || "Sin descripción"} />
+							<ReadOnlyField
+								label='Descripción'
+								value={asset.description || "Sin descripción"}
+							/>
 
-							<div className="border-t pt-4 mt-4">
-								<h4 className="text-sm font-semibold mb-3 text-primary">Ubicación y Responsable</h4>
-								<div className="grid grid-cols-2 gap-4">
-									<ReadOnlyField label="Ubicación Actual" value={asset.location.name} />
-									<ReadOnlyField label="Responsable" value={`${asset.responsible.first_name} ${asset.responsible.last_name}`} />
+							<div className='border-t pt-4 mt-4'>
+								<h4 className='text-sm font-semibold mb-3 text-primary'>
+									Ubicación y Responsable
+								</h4>
+								<div className='grid grid-cols-2 gap-4'>
+									<ReadOnlyField
+										label='Ubicación Actual'
+										value={asset.location.name}
+									/>
+									<ReadOnlyField
+										label='Responsable'
+										value={`${asset.responsible.first_name} ${asset.responsible.last_name}`}
+									/>
 								</div>
 							</div>
 
-							<div className="border-t pt-4 mt-4">
-								<h4 className="text-sm font-semibold mb-3 text-primary">Estado y Valor</h4>
-								<div className="grid grid-cols-2 gap-4">
-									<ReadOnlyField label="Costo" value={`$${asset.cost.toLocaleString()}`} />
-									<div className="space-y-1">
-										<Label className="text-xs text-muted-foreground">Estado</Label>
-										<div className="mt-1">
-											<span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                                                ${asset.status === 'active' ? 'bg-green-100 text-green-800' :
-													asset.status === 'inactive' ? 'bg-yellow-100 text-yellow-800' :
-														'bg-red-100 text-red-800'}`}>
-												{asset.status === 'decommissioned' ? 'Desincorporado' : asset.status}
+							<div className='border-t pt-4 mt-4'>
+								<h4 className='text-sm font-semibold mb-3 text-primary'>
+									Estado y Valor
+								</h4>
+								<div className='grid grid-cols-2 gap-4'>
+									<ReadOnlyField
+										label='Costo'
+										value={`$${asset.cost.toLocaleString()}`}
+									/>
+									<div className='space-y-1'>
+										<Label className='text-xs text-muted-foreground'>
+											Estado
+										</Label>
+										<div className='mt-1'>
+											<span
+												className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
+                                                ${
+																									asset.status === "active"
+																										? "bg-green-100 text-green-800"
+																										: asset.status ===
+																										  "inactive"
+																										? "bg-yellow-100 text-yellow-800"
+																										: "bg-red-100 text-red-800"
+																								}`}
+											>
+												{asset.status === "decommissioned"
+													? "Desincorporado"
+													: asset.status}
 											</span>
 										</div>
 									</div>
-									<ReadOnlyField label="Fecha de Adquisición" value={new Date(asset.acquisition_date).toLocaleDateString()} />
+									<ReadOnlyField
+										label='Fecha de Adquisición'
+										value={new Date(
+											asset.acquisition_date
+										).toLocaleDateString()}
+									/>
 								</div>
 							</div>
 						</TabsContent>
@@ -349,7 +372,9 @@ export default function AssetDialog({
 										</SelectContent>
 									</Select>
 									{asset && !canChangeLocation && (
-										<span className="text-[10px] text-muted-foreground">Solo Gerentes pueden reubicar</span>
+										<span className='text-[10px] text-muted-foreground'>
+											Solo Gerentes pueden reubicar
+										</span>
 									)}
 								</div>
 							</div>
@@ -393,17 +418,21 @@ export default function AssetDialog({
 										</SelectContent>
 									</Select>
 									{asset && !canChangeStatus && (
-										<span className="text-[10px] text-muted-foreground">Solo Admin puede cambiar estado</span>
+										<span className='text-[10px] text-muted-foreground'>
+											Solo Admin puede cambiar estado
+										</span>
 									)}
 								</div>
 							</div>
 
 							{asset && (
-								<div className="space-y-2 pt-2">
-									<Label htmlFor="change_reason">Motivo del Cambio (para historial)</Label>
+								<div className='space-y-2 pt-2'>
+									<Label htmlFor='change_reason'>
+										Motivo del Cambio (para historial)
+									</Label>
 									<Input
-										id="change_reason"
-										placeholder="Ej: Mantenimiento, Upgrade, etc."
+										id='change_reason'
+										placeholder='Ej: Mantenimiento, Upgrade, etc.'
 									/>
 								</div>
 							)}
