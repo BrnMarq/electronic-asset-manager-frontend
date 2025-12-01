@@ -62,10 +62,11 @@ export default function Assets() {
 	const [isExporting, setIsExporting] = useState(false);
 
 	// Lógica de permisos para el botón de crear
-	const roleName = user?.role && typeof user.role === 'object' ? user.role.name : user?.role;
+	const roleName =
+		user?.role && typeof user.role === "object" ? user.role.name : user?.role;
 	const canCreate = roleName === "admin" || roleName === "manager";
 
-	const itemsPerPage = 10;
+	const itemsPerPage = 9;
 	const assets = assetsInfo.assets;
 	const totalPages = Math.ceil(assetsInfo.total / itemsPerPage);
 
@@ -194,7 +195,11 @@ export default function Assets() {
 					</p>
 				</div>
 				<div className='flex gap-2'>
-					<Button onClick={exportAssets} variant='outline' disabled={isExporting}>
+					<Button
+						onClick={exportAssets}
+						variant='outline'
+						disabled={isExporting}
+					>
 						{isExporting ? (
 							<Loader2 className='h-4 w-4 mr-2 animate-spin' />
 						) : (
@@ -202,7 +207,7 @@ export default function Assets() {
 						)}
 						{isExporting ? "Exportando..." : "Exportar"}
 					</Button>
-					
+
 					{/* Renderizado condicional del botón de crear */}
 					{canCreate && (
 						<Button onClick={handleAdd}>
