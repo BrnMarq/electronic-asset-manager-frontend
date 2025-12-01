@@ -89,14 +89,18 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 				fetchAssets();
 			}
 			toast({
-				title: response.status === 201 ? "Activo creado" : "Error",
-				description:
-					response.data?.message ??
-					response.data?.errors?.[0]?.msg ??
-					"Error desconocido",
-				variant: response.status === 201 ? "default" : "destructive",
+				title: "Activo creado",
+				description: response.data.message,
 			});
 		} catch (error) {
+			toast({
+				title: "Error al crear el activo",
+				description:
+					error?.response.data?.message ??
+					error?.response.data?.errors?.[0]?.msg ??
+					"Error desconocido",
+				variant: "destructive",
+			});
 			console.error("Error adding asset:", error);
 		}
 	};
@@ -114,14 +118,18 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 				}));
 			}
 			toast({
-				title: response.status === 200 ? "Activo actualizado" : "Error",
-				description:
-					response.data.message ??
-					response.data.errors[0] ??
-					"Error desconocido",
-				variant: response.status === 200 ? "default" : "destructive",
+				title: "Activo actualizado",
+				description: response.data.message,
 			});
 		} catch (error) {
+			toast({
+				title: "Error al actualizar el activo",
+				description:
+					error?.response.data?.message ??
+					error?.response.data?.errors?.[0]?.msg ??
+					"Error desconocido",
+				variant: "destructive",
+			});
 			console.error("Error updating asset:", error);
 		}
 	};
@@ -139,14 +147,18 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 			}
 
 			toast({
-				title: response.status === 200 ? "Activo eliminado" : "Error",
-				description:
-					response.data.message ??
-					response.data.errors[0] ??
-					"Error desconocido",
-				variant: response.status === 200 ? "default" : "destructive",
+				title: "Activo eliminado",
+				description: response.data.message,
 			});
 		} catch (error) {
+			toast({
+				title: "Error al eliminar el activo",
+				description:
+					error?.response.data?.message ??
+					error?.response.data?.errors?.[0]?.msg ??
+					"Error desconocido",
+				variant: "destructive",
+			});
 			console.error("Error deleting asset:", error);
 		}
 	};

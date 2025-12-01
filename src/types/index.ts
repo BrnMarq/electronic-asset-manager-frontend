@@ -108,7 +108,7 @@ export interface ChangelogEntry {
 	id: number;
 	asset_id: number;
 	user_id: number;
-	change_type: string; 
+	change_type: string;
 	change_reason?: string;
 	createdAt: string;
 	user?: {
@@ -119,10 +119,10 @@ export interface ChangelogEntry {
 	};
 
 	changes?: {
-        field: string;
-        oldValue: any;
-        newValue: any;
-    }[];
+		field: string;
+		oldValue: unknown;
+		newValue: unknown;
+	}[];
 
 	old_name?: string;
 	old_serial_number?: number;
@@ -144,10 +144,10 @@ export interface AuthContextType {
 
 export interface AssetsContextType {
 	assetsInfo: AssetInfo;
-	changelog: ChangelogEntry[]; 
+	changelog: ChangelogEntry[];
 	fetchAssets: (page?: number, limit?: number, filters?: AssetFilter) => void;
 	fetchAssetHistory: (id: number) => Promise<ChangelogEntry[]>;
-    fetchChangelog: () => Promise<void>; 
+	fetchChangelog: () => Promise<void>;
 	addAsset: (
 		asset: Omit<
 			AssetForm,
@@ -163,7 +163,7 @@ export interface LocationsContextType {
 	fetchLocations: () => void;
 	addLocation: (location: Omit<Location, "id">) => void;
 	updateLocation: (id: number, updates: Partial<Location>) => void;
-	deleteLocation: (id: number) => Promise<{ success: boolean; message?: string }>;
+	deleteLocation: (id: number) => void;
 }
 
 export interface TypesContextType {
@@ -171,7 +171,7 @@ export interface TypesContextType {
 	fetchTypes: () => void;
 	addType: (type: Omit<AssetType, "id">) => void;
 	updateType: (id: number, updates: Partial<AssetType>) => void;
-	deleteType: (id: number) => Promise<{ success: boolean; message?: string }>;
+	deleteType: (id: number) => void;
 }
 
 export interface UsersContextType {
@@ -182,5 +182,5 @@ export interface UsersContextType {
 		id: number,
 		updates: Partial<Omit<UserForm, "id" | "createdAt">>
 	) => void;
-	deleteUser: (id: number) => Promise<{ success: boolean; message?: string }>;
+	deleteUser: (id: number) => void;
 }

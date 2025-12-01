@@ -28,17 +28,7 @@ export default function Login() {
 		const success = await login(username, password);
 
 		if (success) {
-			toast({
-				title: "Acceso exitoso",
-				description: "Bienvenido al sistema de gestión de activos",
-			});
 			navigate("/dashboard");
-		} else {
-			toast({
-				title: "Error de autenticación",
-				description: "Usuario o contraseña incorrectos",
-				variant: "destructive",
-			});
 		}
 
 		setLoading(false);

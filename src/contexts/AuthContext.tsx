@@ -7,6 +7,7 @@ import {
 } from "react";
 import { jwtDecode } from "jwt-decode";
 import { User, AuthContextType } from "@/types";
+import { toast } from "@/hooks/use-toast";
 import api from "@/lib/axios";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,8 +39,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			localStorage.setItem("currentUser", JSON.stringify(user));
 			setUser(user);
 
+			toast({
+				title: "Acceso exitoso",
+				description: "Bienvenido al sistema de gestión de activos",
+			});
+
 			return true;
 		} catch (error) {
+			toast({
+				title: "Error de autenticación",
+				description:
+					error?.response?.data?.message ??
+					error?.response?.data?.errors[0]?.msg ??
+					"Error desconocido",
+				variant: "destructive",
+			});
 			console.error("Login failed:", error);
 			return false;
 		}
