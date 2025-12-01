@@ -53,12 +53,17 @@ export function LocationsProvider({ children }: { children: ReactNode }) {
 	};
 
 	const deleteLocation = async (id: number) => {
-		if (!user) return;
+		if (!user) return { success: false, message: "No autenticado" };
 		try {
 			await api.delete(`/locations/${id}`);
 			setLocations((prev) => prev.filter((loc) => loc.id !== id));
-		} catch (error) {
+			return { success: true };
+		} catch (error: any) {
 			console.error("Error deleting location:", error);
+			return { 
+				success: false, 
+				message: error.response?.data?.message || "Error al eliminar la ubicación" 
+			};
 		}
 	};
 

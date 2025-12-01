@@ -85,14 +85,23 @@ export default function Types() {
 		});
 	};
 
-	const handleDelete = () => {
+	const handleDelete = async () => {
 		if (deleteId) {
-			deleteType(deleteId);
+			const result = await deleteType(deleteId);
+			
+			if (result.success) {
+				toast({
+					title: "Tipo eliminado",
+					description: "El tipo se eliminó correctamente",
+				});
+			} else {
+				toast({
+					title: "No se pudo eliminar",
+					description: result.message, 
+					variant: "destructive",
+				});
+			}
 			setDeleteId(null);
-			toast({
-				title: "Tipo eliminado",
-				description: "El tipo se eliminó correctamente",
-			});
 		}
 	};
 

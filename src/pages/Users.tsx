@@ -128,14 +128,23 @@ export default function Users() {
 		});
 	};
 
-	const handleDelete = () => {
+	const handleDelete = async () => {
 		if (deleteId) {
-			deleteUser(deleteId);
+			const result = await deleteUser(deleteId);
+			
+			if (result.success) {
+				toast({
+					title: "Usuario eliminado",
+					description: "El usuario se eliminó correctamente",
+				});
+			} else {
+				toast({
+					title: "No se pudo eliminar",
+					description: result.message,
+					variant: "destructive",
+				});
+			}
 			setDeleteId(null);
-			toast({
-				title: "Usuario eliminado",
-				description: "El usuario se eliminó correctamente",
-			});
 		}
 	};
 

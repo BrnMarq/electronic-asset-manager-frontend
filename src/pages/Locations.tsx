@@ -91,14 +91,23 @@ export default function Locations() {
 		});
 	};
 
-	const handleDelete = () => {
+	const handleDelete = async () => {
 		if (deleteId) {
-			deleteLocation(deleteId);
+			const result = await deleteLocation(deleteId);
+			
+			if (result.success) {
+				toast({
+					title: "Ubicación eliminada",
+					description: "La ubicación se eliminó correctamente",
+				});
+			} else {
+				toast({
+					title: "No se pudo eliminar",
+					description: result.message,
+					variant: "destructive",
+				});
+			}
 			setDeleteId(null);
-			toast({
-				title: "Ubicación eliminada",
-				description: "La ubicación se eliminó correctamente",
-			});
 		}
 	};
 

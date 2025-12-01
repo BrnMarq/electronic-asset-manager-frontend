@@ -158,7 +158,7 @@ export interface LocationsContextType {
 	fetchLocations: () => void;
 	addLocation: (location: Omit<Location, "id">) => void;
 	updateLocation: (id: number, updates: Partial<Location>) => void;
-	deleteLocation: (id: number) => void;
+	deleteLocation: (id: number) => Promise<{ success: boolean; message?: string }>;
 }
 
 export interface TypesContextType {
@@ -166,7 +166,7 @@ export interface TypesContextType {
 	fetchTypes: () => void;
 	addType: (type: Omit<AssetType, "id">) => void;
 	updateType: (id: number, updates: Partial<AssetType>) => void;
-	deleteType: (id: number) => void;
+	deleteType: (id: number) => Promise<{ success: boolean; message?: string }>;
 }
 
 export interface UsersContextType {
@@ -177,5 +177,5 @@ export interface UsersContextType {
 		id: number,
 		updates: Partial<Omit<UserForm, "id" | "createdAt">>
 	) => void;
-	deleteUser: (id: number) => void;
+	deleteUser: (id: number) => Promise<{ success: boolean; message?: string }>;
 }

@@ -52,8 +52,12 @@ export function TypesProvider({ children }: { children: ReactNode }) {
 		try {
 			await api.delete(`/types/${id}`);
 			setTypes((prevTypes) => prevTypes.filter((type) => type.id !== id));
-		} catch (error) {
-			console.error("Error deleting type:", error);
+		} catch (error: any) {
+			console.error("Error deleting location:", error);
+			return { 
+				success: false, 
+				message: error.response?.data?.message || "Error al eliminar la ubicación" 
+			};
 		}
 	};
 

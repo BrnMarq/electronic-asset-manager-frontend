@@ -63,12 +63,17 @@ export function UsersProvider({ children }: { children: ReactNode }) {
 	};
 
 	const deleteUser = async (id: number) => {
-		if (!user) return;
+		if (!user) return { success: false, message: "No autenticado" };
 		try {
 			await api.delete(`/users/${id}`);
 			setUsers((prev) => prev.filter((loc) => loc.id !== id));
-		} catch (error) {
+			return { success: true };
+		} catch (error: any) {
 			console.error("Error deleting user:", error);
+			return { 
+				success: false, 
+				message: error.response?.data?.message || "Error al eliminar el usuario" 
+			};
 		}
 	};
 
