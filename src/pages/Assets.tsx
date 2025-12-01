@@ -3,6 +3,7 @@ import { useAssets } from "@/contexts/AssetsContext";
 import { useLocations } from "@/contexts/LocationsContext";
 import { useTypes } from "@/contexts/TypesContext";
 import { useUsers } from "@/contexts/UsersContext";
+import { useAuth } from "@/contexts/AuthContext"; // Importar AuthContext
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import api from "@/lib/axios";
@@ -51,12 +52,18 @@ export default function Assets() {
 	const { locations, fetchLocations } = useLocations();
 	const { types, fetchTypes } = useTypes();
 	const { users, fetchUsers } = useUsers();
+	const { user } = useAuth(); // Obtener usuario para permisos
+
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [showFilters, setShowFilters] = useState(false);
 	const [selectedAsset, setSelectedAsset] = useState<Asset | undefined>();
 	const [currentPage, setCurrentPage] = useState(1);
 	const [filters, setFilters] = useState<AssetFilter>(defaultFilters);
 	const [isExporting, setIsExporting] = useState(false);
+
+	// Lógica de permisos para el botón de crear
+	const roleName = user?.role && typeof user.role === 'object' ? user.role.name : user?.role;
+	const canCreate = roleName === "admin" || roleName === "manager";
 
 	const itemsPerPage = 10;
 	const assets = assetsInfo.assets;
@@ -109,61 +116,60 @@ export default function Assets() {
 		(v) => v !== "" && v !== 0 && v !== "no_filter"
 	);
 
-const exportAssets = async () => {
-    if (assetsInfo.total > 0) 
-		{
-        const confirm = window.confirm(
-            `Está a punto de exportar ${assetsInfo.total} activos. ¿Desea continuar?`
-        );
-        if (!confirm) return;
-    }
-	setIsExporting(true);
-	try {
-		const filtersCopy = { ...filters };
-		Object.keys(filtersCopy).forEach((key) => {
-			if (
-				filtersCopy[key as keyof AssetFilter] === "" ||
-				filtersCopy[key as keyof AssetFilter] === 0 ||
-				filtersCopy[key as keyof AssetFilter] === "no_filter"
-			) {
-				delete filtersCopy[key as keyof AssetFilter];
-			}
-		});
-
-		const response = await api.get("/assets/export", {
-			params: filtersCopy,
-			responseType: "blob",
-		});
-
-		const url = window.URL.createObjectURL(response.data);
-		const link = document.createElement("a");
-		link.href = url;
-
-		const contentDisposition = response.headers["content-disposition"];
-		let filename = `Inventario_Activos_${Date.now()}.xlsx`;
-		if (contentDisposition) {
-			const filenameMatch = contentDisposition.match(/filename=([^;]+)/);
-			if (filenameMatch && filenameMatch.length > 1) {
-				filename = filenameMatch[1].replace(/"/g, "");
-			}
+	const exportAssets = async () => {
+		if (assetsInfo.total > 0) {
+			const confirm = window.confirm(
+				`Está a punto de exportar ${assetsInfo.total} activos. ¿Desea continuar?`
+			);
+			if (!confirm) return;
 		}
+		setIsExporting(true);
+		try {
+			const filtersCopy = { ...filters };
+			Object.keys(filtersCopy).forEach((key) => {
+				if (
+					filtersCopy[key as keyof AssetFilter] === "" ||
+					filtersCopy[key as keyof AssetFilter] === 0 ||
+					filtersCopy[key as keyof AssetFilter] === "no_filter"
+				) {
+					delete filtersCopy[key as keyof AssetFilter];
+				}
+			});
 
-		link.setAttribute("download", filename);
-		document.body.appendChild(link);
-		link.click();
-		link.remove();
-		window.URL.revokeObjectURL(url);
-	} catch (error) {
-		console.error("Error exporting assets:", error);
-		toast({
-			title: "Error de exportación",
-			description: "No se pudo generar el archivo de activos.",
-			variant: "destructive",
-		});
-	} finally {
-		setIsExporting(false);
-	}
-};
+			const response = await api.get("/assets/export", {
+				params: filtersCopy,
+				responseType: "blob",
+			});
+
+			const url = window.URL.createObjectURL(response.data);
+			const link = document.createElement("a");
+			link.href = url;
+
+			const contentDisposition = response.headers["content-disposition"];
+			let filename = `Inventario_Activos_${Date.now()}.xlsx`;
+			if (contentDisposition) {
+				const filenameMatch = contentDisposition.match(/filename=([^;]+)/);
+				if (filenameMatch && filenameMatch.length > 1) {
+					filename = filenameMatch[1].replace(/"/g, "");
+				}
+			}
+
+			link.setAttribute("download", filename);
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			window.URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error("Error exporting assets:", error);
+			toast({
+				title: "Error de exportación",
+				description: "No se pudo generar el archivo de activos.",
+				variant: "destructive",
+			});
+		} finally {
+			setIsExporting(false);
+		}
+	};
 
 	const getStatusBadge = (status: string) => {
 		const variants: Record<
@@ -196,10 +202,14 @@ const exportAssets = async () => {
 						)}
 						{isExporting ? "Exportando..." : "Exportar"}
 					</Button>
-					<Button onClick={handleAdd}>
-						<Plus className='h-4 w-4 mr-2' />
-						Nuevo Activo
-					</Button>
+					
+					{/* Renderizado condicional del botón de crear */}
+					{canCreate && (
+						<Button onClick={handleAdd}>
+							<Plus className='h-4 w-4 mr-2' />
+							Nuevo Activo
+						</Button>
+					)}
 				</div>
 			</div>
 
@@ -357,29 +367,6 @@ const exportAssets = async () => {
 									}
 								/>
 							</div>
-							{/* <div className='space-y-2'>
-								<label className='text-sm font-medium'>Costo Mínimo</label>
-								<Input
-									type='number'
-									placeholder='0'
-									value={filters.minCost}
-									onChange={(e) =>
-										setFilters({ ...filters, minCost: e.target.value })
-									}
-								/>
-							</div> */}
-
-							{/* <div className='space-y-2'>
-								<label className='text-sm font-medium'>Costo Máximo</label>
-								<Input
-									type='number'
-									placeholder='Sin límite'
-									value={filters.maxCost}
-									onChange={(e) =>
-										setFilters({ ...filters, maxCost: e.target.value })
-									}
-								/>
-							</div> */}
 
 							<div className='space-y-2'>
 								<label className='text-sm font-medium'>Descripción</label>

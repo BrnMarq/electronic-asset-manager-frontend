@@ -46,13 +46,19 @@ export default function AssetDialog({
 	const { types, fetchTypes } = useTypes();
 	const { users, fetchUsers } = useUsers();
 
+	// Estado para las pestañas
 	const [activeTab, setActiveTab] = useState("details");
+
+	// Determinar Rol
 	const roleName = user?.role && typeof user.role === 'object' ? user.role.name : user?.role;
 
+	// Permisos
 	const canEdit = roleName === "admin" || roleName === "manager";
-	const canChangeLocation = roleName === "manager"|| roleName === "admin";
-	const canChangeStatus = roleName === "admin"; 
-	const canViewHistory = roleName === "admin";
+	const canChangeLocation = roleName === "manager" || roleName === "admin";
+	const canChangeStatus = roleName === "admin";
+	// Permitimos ver historial a todos los que pueden ver el activo, o puedes restringirlo aquí si deseas.
+	// Por ahora todos los roles autenticados pueden ver historial si ya entraron al activo.
+	const canViewHistory = true; 
 
 	const [formData, setFormData] = useState<
 		Omit<AssetForm, "id" | "created_at" | "created_by" | "acquisition_date">
@@ -72,6 +78,10 @@ export default function AssetDialog({
 			fetchLocations();
 			fetchTypes();
 			fetchUsers();
+
+			// Lógica de pestaña por defecto:
+			// Si es un activo existente, mostrar Información.
+			// Si es nuevo (y el usuario puede crear), mostrar Formulario.
 			if (asset) {
 				setActiveTab("details");
 			} else {
@@ -139,6 +149,7 @@ export default function AssetDialog({
 		}
 	};
 
+	// Componente auxiliar para visualizar datos sin editar
 	const ReadOnlyField = ({ label, value }: { label: string; value: string | number }) => (
 		<div className="space-y-1">
 			<Label className="text-xs text-muted-foreground">{label}</Label>
@@ -161,22 +172,23 @@ export default function AssetDialog({
 				</DialogHeader>
 
 				<Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-					<TabsList>
+					<TabsList className='grid w-full grid-cols-3'>
+						{/* 1. INFORMACIÓN */}
 						<TabsTrigger value='details' disabled={!asset}>
 							<Eye className="w-4 h-4 mr-2" /> Información
 						</TabsTrigger>
 
-						{(canEdit || !asset) && (
+						{/* 2. EDITAR: Solo si el rol lo permite (Admin/Manager) */}
+						{canEdit && (
 							<TabsTrigger value='edit'>
 								<Edit className="w-4 h-4 mr-2" /> {asset ? "Editar" : "Formulario"}
 							</TabsTrigger>
 						)}
 
-						{asset && canViewHistory && (
-							<TabsTrigger value='history'>
-								<History className="w-4 h-4 mr-2" /> Historial
-							</TabsTrigger>
-						)}
+						{/* 3. HISTORIAL */}
+						<TabsTrigger value='history' disabled={!asset || !canViewHistory}>
+							<History className="w-4 h-4 mr-2" /> Historial
+						</TabsTrigger>
 					</TabsList>
 
 					{asset && (
@@ -434,5 +446,4 @@ export default function AssetDialog({
 			</DialogContent>
 		</Dialog>
 	);
-
 }
