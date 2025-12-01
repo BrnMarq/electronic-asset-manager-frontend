@@ -48,7 +48,7 @@ export default function Dashboard() {
 			<div>
 				<h1 className='text-3xl font-bold text-foreground'>Dashboard</h1>
 				<p className='text-muted-foreground mt-1'>
-					Bienvenido, {user?.username} ({user?.role})
+					Bienvenido, {user?.username} ({user?.role.name})
 				</p>
 			</div>
 

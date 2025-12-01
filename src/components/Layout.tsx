@@ -1,10 +1,9 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Package, History, LogOut, Menu } from "lucide-react";
+import { LayoutDashboard, Package, History, LogOut, Menu, Users, MapPin, Tags } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState } from "react";
 
 interface LayoutProps {
 	children: ReactNode;
@@ -21,14 +20,43 @@ export default function Layout({ children }: LayoutProps) {
 		navigate("/");
 	};
 
-	const navItems = [
-		{ path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-		{ path: "/assets", label: "Activos", icon: Package },
-		{ path: "/locations", label: "Ubicaciones", icon: Package },
-		{ path: "/types", label: "Tipos", icon: Package },
-		{ path: "/users", label: "Usuarios", icon: Package },
-		{ path: "/changelog", label: "Historial", icon: History },
+    const userRole = typeof user?.role === 'object' ? user.role.name : user?.role;
+	const allNavItems = [
+		{ 
+            path: "/dashboard", 
+            label: "Dashboard", 
+            icon: LayoutDashboard, 
+            roles: ["admin", "manager", "inventory"] 
+        },
+		{ 
+            path: "/assets", 
+            label: "Activos", 
+            icon: Package, 
+            roles: ["admin", "manager", "inventory"] 
+        },
+		{ 
+            path: "/locations", 
+            label: "Ubicaciones", 
+            icon: MapPin, 
+            roles: ["admin", "manager"] 
+        },
+		{ 
+            path: "/types", 
+            label: "Tipos", 
+            icon: Tags, 
+            roles: ["admin", "manager"] 
+        },
+		{ 
+            path: "/users", 
+            label: "Usuarios", 
+            icon: Users, 
+            roles: ["admin"] 
+        },
 	];
+
+    const navItems = allNavItems.filter(item => 
+        userRole && item.roles.includes(userRole)
+    );
 
 	const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
 		<nav className={`flex ${mobile ? "flex-col" : "items-center"} gap-2`}>
@@ -97,7 +125,7 @@ export default function Layout({ children }: LayoutProps) {
 						<div className='hidden sm:block text-right'>
 							<p className='text-sm font-medium'>{user?.username}</p>
 							<p className='text-xs text-muted-foreground capitalize'>
-								{user?.role}
+								{userRole}
 							</p>
 						</div>
 						<Button

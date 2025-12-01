@@ -5,7 +5,12 @@ import {
 	useCallback,
 	ReactNode,
 } from "react";
-import { AssetInfo, AssetForm, AssetsContextType, ChangelogEntry } from "@/types";
+import {
+	AssetInfo,
+	AssetForm,
+	AssetsContextType,
+	ChangelogEntry,
+} from "@/types";
 import { useAuth } from "./AuthContext";
 import api from "@/lib/axios";
 
@@ -19,6 +24,16 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 	});
 
 	const [changelog, setChangelog] = useState<ChangelogEntry[]>([]);
+
+	const fetchChangelog = useCallback(async () => {
+		if (!user) return;
+		try {
+			const response = await api.get("/changelog");
+			setChangelog(response.data);
+		} catch (error) {
+			console.error("Error fetching changelog:", error);
+		}
+	}, [user]);
 
 	const fetchAssets = useCallback(
 		async (page = 1, limit = 10, filters = {}) => {
@@ -108,6 +123,7 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 				assetsInfo,
 				changelog,
 				fetchAssets,
+				fetchChangelog,
 				fetchAssetHistory,
 				addAsset,
 				updateAsset,

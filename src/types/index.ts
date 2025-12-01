@@ -84,11 +84,13 @@ export interface Asset {
 	type: {
 		id: number;
 		name: string;
+		category: string;
 	};
 	responsible: {
 		id: number;
 		first_name: string;
 		last_name: string;
+		username: string;
 	};
 }
 
@@ -108,6 +110,7 @@ export interface ChangelogEntry {
 		id: number;
 		first_name: string;
 		last_name: string;
+		username: string;
 	};
 
 	changes?: {
@@ -139,6 +142,7 @@ export interface AssetsContextType {
 	changelog: ChangelogEntry[]; 
 	fetchAssets: (page?: number, limit?: number, filters?: AssetFilter) => void;
 	fetchAssetHistory: (id: number) => Promise<ChangelogEntry[]>;
+    fetchChangelog: () => Promise<void>; 
 	addAsset: (
 		asset: Omit<
 			AssetForm,

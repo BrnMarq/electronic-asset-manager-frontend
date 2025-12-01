@@ -6,8 +6,11 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 
 export default function Changelog() {
-  const { changelog, assets } = useAssets();
+  const { changelog, assetsInfo,fetchChangelog } = useAssets();
+  const assets = assetsInfo.assets;
   const [search, setSearch] = useState("");
+
+  
 
   const getActionBadge = (action: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
@@ -39,11 +42,11 @@ export default function Changelog() {
   };
 
   const filteredChangelog = changelog.filter((entry) => {
-    const asset = assets.find((a) => a.id === entry.assetId);
+    const asset = assets.find((a) => a.id === entry.asset_id);
     const searchLower = search.toLowerCase();
     return (
-      entry.username.toLowerCase().includes(searchLower) ||
-      entry.action.toLowerCase().includes(searchLower) ||
+      entry.user?.username.toLowerCase().includes(searchLower) ||
+      entry.change_type.toLowerCase().includes(searchLower) ||
       asset?.name.toLowerCase().includes(searchLower) ||
       entry.changes.some(
         (c) =>
@@ -87,19 +90,19 @@ export default function Changelog() {
           </Card>
         ) : (
           filteredChangelog.reverse().map((entry) => {
-            const asset = assets.find((a) => a.id === entry.assetId);
+            const asset = assets.find((a) => a.id === entry.asset_id);
             return (
               <Card key={entry.id} className="shadow-sm hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        {getActionBadge(entry.action)}
+                        {getActionBadge(entry.change_type)}
                         <span className="font-medium">{asset?.name || "Activo eliminado"}</span>
                       </div>
                       <p className="text-sm text-muted-foreground mb-3">
-                        Por {entry.username} •{" "}
-                        {new Date(entry.timestamp).toLocaleString("es-ES", {
+                        Por {entry.user.username} •{" "}
+                        {new Date(entry.createdAt).toLocaleString("es-ES", {
                           year: "numeric",
                           month: "long",
                           day: "numeric",

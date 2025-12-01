@@ -3,6 +3,7 @@ import { useAssets } from "@/contexts/AssetsContext";
 import { useLocations } from "@/contexts/LocationsContext";
 import { useTypes } from "@/contexts/TypesContext";
 import { useUsers } from "@/contexts/UsersContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Asset, AssetForm, AssetStatus } from "@/types";
 import {
 	Dialog,
@@ -25,7 +26,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
+import { Trash2, Eye, Edit, History } from "lucide-react";
 import AssetHistory from "./AssetHistory";
 
 interface AssetDialogProps {
@@ -39,10 +40,20 @@ export default function AssetDialog({
 	onOpenChange,
 	asset,
 }: AssetDialogProps) {
+	const { user } = useAuth();
 	const { addAsset, updateAsset, deleteAsset } = useAssets();
 	const { locations, fetchLocations } = useLocations();
 	const { types, fetchTypes } = useTypes();
 	const { users, fetchUsers } = useUsers();
+
+	const [activeTab, setActiveTab] = useState("details");
+	const roleName = user?.role && typeof user.role === 'object' ? user.role.name : user?.role;
+
+	const canEdit = roleName === "admin" || roleName === "manager";
+	const canChangeLocation = roleName === "manager"|| roleName === "admin";
+	const canChangeStatus = roleName === "admin"; 
+	const canViewHistory = roleName === "admin";
+
 	const [formData, setFormData] = useState<
 		Omit<AssetForm, "id" | "created_at" | "created_by" | "acquisition_date">
 	>({
@@ -57,25 +68,17 @@ export default function AssetDialog({
 	});
 
 	useLayoutEffect(() => {
-		if (
-			open &&
-			locations.length === 0 &&
-			types.length === 0 &&
-			users.length === 0
-		) {
+		if (open) {
 			fetchLocations();
 			fetchTypes();
 			fetchUsers();
+			if (asset) {
+				setActiveTab("details");
+			} else {
+				setActiveTab("edit");
+			}
 		}
-	}, [
-		fetchLocations,
-		fetchTypes,
-		fetchUsers,
-		open,
-		locations.length,
-		types.length,
-		users.length,
-	]);
+	}, [open, asset, fetchLocations, fetchTypes, fetchUsers]);
 
 	useEffect(() => {
 		if (asset) {
@@ -89,19 +92,18 @@ export default function AssetDialog({
 				cost: asset.cost,
 				status: asset.status,
 			});
-			return;
+		} else {
+			setFormData({
+				name: "",
+				type_id: 0,
+				description: "",
+				serial_number: 0,
+				responsible_id: 0,
+				location_id: 0,
+				cost: 0,
+				status: "active" as AssetStatus,
+			});
 		}
-
-		setFormData({
-			name: "",
-			type_id: 0,
-			description: "",
-			serial_number: 0,
-			responsible_id: 0,
-			location_id: 0,
-			cost: 0,
-			status: "active" as AssetStatus,
-		});
 	}, [asset, open]);
 
 	const handleSubmit = (e: React.FormEvent) => {
@@ -137,35 +139,88 @@ export default function AssetDialog({
 		}
 	};
 
-	const handleStatusChange = (status: AssetStatus) => {
-		if (asset) {
-			setFormData({ ...formData, status });
-			toast({
-				title: "Estado actualizado",
-				description: `El activo ahora está ${status}`,
-			});
-		}
-	};
+	const ReadOnlyField = ({ label, value }: { label: string; value: string | number }) => (
+		<div className="space-y-1">
+			<Label className="text-xs text-muted-foreground">{label}</Label>
+			<div className="p-2 bg-muted/50 rounded-md text-sm font-medium border border-transparent min-h-[36px] flex items-center">
+				{value || "-"}
+			</div>
+		</div>
+	);
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
+			<DialogContent className='max-w-3xl max-h-[90vh] overflow-y-auto'>
 				<DialogHeader>
-					<DialogTitle>{asset ? "Editar Activo" : "Nuevo Activo"}</DialogTitle>
+					<DialogTitle>{asset ? asset.name : "Nuevo Activo"}</DialogTitle>
 					<DialogDescription>
 						{asset
-							? "Modifica la información del activo"
+							? `Serial: ${asset.serial_number} • ${asset.type.name}`
 							: "Completa el formulario para agregar un nuevo activo"}
 					</DialogDescription>
 				</DialogHeader>
 
-				<Tabs defaultValue='info' className='w-full'>
-					<TabsList className='grid w-full grid-cols-2'>
-						<TabsTrigger value='info'>Información</TabsTrigger>
-						{asset && <TabsTrigger value='history'>Historial</TabsTrigger>}
+				<Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
+					<TabsList>
+						<TabsTrigger value='details' disabled={!asset}>
+							<Eye className="w-4 h-4 mr-2" /> Información
+						</TabsTrigger>
+
+						{(canEdit || !asset) && (
+							<TabsTrigger value='edit'>
+								<Edit className="w-4 h-4 mr-2" /> {asset ? "Editar" : "Formulario"}
+							</TabsTrigger>
+						)}
+
+						{asset && canViewHistory && (
+							<TabsTrigger value='history'>
+								<History className="w-4 h-4 mr-2" /> Historial
+							</TabsTrigger>
+						)}
 					</TabsList>
-					<TabsContent value='info'>
-						<form onSubmit={handleSubmit} className='space-y-4'>
+
+					{asset && (
+						<TabsContent value="details" className="space-y-6 pt-4">
+							<div className="grid grid-cols-2 gap-4">
+								<ReadOnlyField label="Nombre" value={asset.name} />
+								<ReadOnlyField label="Tipo" value={asset.type.name} />
+								<ReadOnlyField label="Categoría" value={asset.type.category} />
+								<ReadOnlyField label="Serial" value={asset.serial_number} />
+							</div>
+
+							<ReadOnlyField label="Descripción" value={asset.description || "Sin descripción"} />
+
+							<div className="border-t pt-4 mt-4">
+								<h4 className="text-sm font-semibold mb-3 text-primary">Ubicación y Responsable</h4>
+								<div className="grid grid-cols-2 gap-4">
+									<ReadOnlyField label="Ubicación Actual" value={asset.location.name} />
+									<ReadOnlyField label="Responsable" value={`${asset.responsible.first_name} ${asset.responsible.last_name}`} />
+								</div>
+							</div>
+
+							<div className="border-t pt-4 mt-4">
+								<h4 className="text-sm font-semibold mb-3 text-primary">Estado y Valor</h4>
+								<div className="grid grid-cols-2 gap-4">
+									<ReadOnlyField label="Costo" value={`$${asset.cost.toLocaleString()}`} />
+									<div className="space-y-1">
+										<Label className="text-xs text-muted-foreground">Estado</Label>
+										<div className="mt-1">
+											<span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
+                                                ${asset.status === 'active' ? 'bg-green-100 text-green-800' :
+													asset.status === 'inactive' ? 'bg-yellow-100 text-yellow-800' :
+														'bg-red-100 text-red-800'}`}>
+												{asset.status === 'decommissioned' ? 'Desincorporado' : asset.status}
+											</span>
+										</div>
+									</div>
+									<ReadOnlyField label="Fecha de Adquisición" value={new Date(asset.acquisition_date).toLocaleDateString()} />
+								</div>
+							</div>
+						</TabsContent>
+					)}
+
+					<TabsContent value='edit'>
+						<form onSubmit={handleSubmit} className='space-y-4 pt-4'>
 							<div className='grid grid-cols-2 gap-4'>
 								<div className='space-y-2'>
 									<Label htmlFor='name'>Nombre *</Label>
@@ -248,7 +303,7 @@ export default function AssetDialog({
 										<SelectContent>
 											{users.map((user) => (
 												<SelectItem key={user.id} value={String(user.id)}>
-													{user.username}
+													{user.username} ({user.first_name} {user.last_name})
 												</SelectItem>
 											))}
 										</SelectContent>
@@ -258,6 +313,7 @@ export default function AssetDialog({
 									<Label htmlFor='location'>Ubicación *</Label>
 									<Select
 										value={String(formData.location_id)}
+										disabled={asset && !canChangeLocation}
 										onValueChange={(value) =>
 											setFormData({
 												...formData,
@@ -280,6 +336,9 @@ export default function AssetDialog({
 											))}
 										</SelectContent>
 									</Select>
+									{asset && !canChangeLocation && (
+										<span className="text-[10px] text-muted-foreground">Solo Gerentes pueden reubicar</span>
+									)}
 								</div>
 							</div>
 
@@ -305,10 +364,9 @@ export default function AssetDialog({
 									<Label htmlFor='status'>Estado *</Label>
 									<Select
 										value={formData.status}
+										disabled={asset && !canChangeStatus}
 										onValueChange={(value: AssetStatus) =>
-											asset
-												? handleStatusChange(value)
-												: setFormData({ ...formData, status: value })
+											setFormData({ ...formData, status: value })
 										}
 									>
 										<SelectTrigger>
@@ -322,12 +380,25 @@ export default function AssetDialog({
 											</SelectItem>
 										</SelectContent>
 									</Select>
+									{asset && !canChangeStatus && (
+										<span className="text-[10px] text-muted-foreground">Solo Admin puede cambiar estado</span>
+									)}
 								</div>
 							</div>
 
-							<DialogFooter className='flex justify-between'>
+							{asset && (
+								<div className="space-y-2 pt-2">
+									<Label htmlFor="change_reason">Motivo del Cambio (para historial)</Label>
+									<Input
+										id="change_reason"
+										placeholder="Ej: Mantenimiento, Upgrade, etc."
+									/>
+								</div>
+							)}
+
+							<DialogFooter className='flex justify-between pt-4'>
 								<div>
-									{asset && (
+									{asset && canChangeStatus && (
 										<Button
 											type='button'
 											variant='destructive'
@@ -354,7 +425,7 @@ export default function AssetDialog({
 						</form>
 					</TabsContent>
 
-					{asset && (
+					{asset && canViewHistory && (
 						<TabsContent value='history'>
 							<AssetHistory assetId={String(asset.id)} currentAsset={asset} />
 						</TabsContent>
@@ -363,4 +434,5 @@ export default function AssetDialog({
 			</DialogContent>
 		</Dialog>
 	);
+
 }
