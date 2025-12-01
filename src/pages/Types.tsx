@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { AssetType } from "@/types";
-import { toast } from "@/hooks/use-toast";
 
 export default function Types() {
 	const { types, addType, updateType, deleteType, fetchTypes } = useTypes();
@@ -49,58 +48,21 @@ export default function Types() {
 	}, [fetchTypes]);
 
 	const handleAdd = () => {
-		if (!formData.name || !formData.category) {
-			toast({
-				title: "Error",
-				description: "Por favor completa todos los campos",
-				variant: "destructive",
-			});
-			return;
-		}
 		addType(formData);
 		setIsAddOpen(false);
 		setFormData({ name: "", category: "", description: "" });
-		toast({
-			title: "Tipo agregado",
-			description: "El tipo se agregó correctamente",
-		});
 	};
 
 	const handleEdit = () => {
-		if (!editingType || !formData.name || !formData.category) {
-			toast({
-				title: "Error",
-				description: "Por favor completa todos los campos",
-				variant: "destructive",
-			});
-			return;
-		}
 		updateType(editingType.id, formData);
 		setIsEditOpen(false);
 		setEditingType(null);
 		setFormData({ name: "", category: "", description: "" });
-		toast({
-			title: "Tipo actualizado",
-			description: "El tipo se actualizó correctamente",
-		});
 	};
 
 	const handleDelete = async () => {
 		if (deleteId) {
-			const result = await deleteType(deleteId);
-			
-			if (result.success) {
-				toast({
-					title: "Tipo eliminado",
-					description: "El tipo se eliminó correctamente",
-				});
-			} else {
-				toast({
-					title: "No se pudo eliminar",
-					description: result.message, 
-					variant: "destructive",
-				});
-			}
+			await deleteType(deleteId);
 			setDeleteId(null);
 		}
 	};
@@ -144,6 +106,7 @@ export default function Types() {
 									onChange={(e) =>
 										setFormData({ ...formData, name: e.target.value })
 									}
+									required
 								/>
 							</div>
 							<div className='space-y-2'>
@@ -154,6 +117,7 @@ export default function Types() {
 									onChange={(e) =>
 										setFormData({ ...formData, category: e.target.value })
 									}
+									required
 								/>
 							</div>
 							<div className='space-y-2'>
@@ -226,6 +190,7 @@ export default function Types() {
 								onChange={(e) =>
 									setFormData({ ...formData, name: e.target.value })
 								}
+								required
 							/>
 						</div>
 						<div className='space-y-2'>
@@ -236,6 +201,7 @@ export default function Types() {
 								onChange={(e) =>
 									setFormData({ ...formData, category: e.target.value })
 								}
+								required
 							/>
 						</div>
 						<div className='space-y-2'>

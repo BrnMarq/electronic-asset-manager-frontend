@@ -6,6 +6,7 @@ import {
 	ReactNode,
 } from "react";
 import { AssetType, TypesContextType } from "@/types";
+import { toast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthContext";
 import api from "@/lib/axios";
 
@@ -29,8 +30,20 @@ export function TypesProvider({ children }: { children: ReactNode }) {
 		if (!user) return;
 		try {
 			const response = await api.post("/types", type);
-			setTypes((prevTypes) => [...prevTypes, response.data]);
+			setTypes((prevTypes) => [...prevTypes, response.data.type]);
+			toast({
+				title: "Tipo creado",
+				description: response.data.message,
+			});
 		} catch (error) {
+			toast({
+				title: "Error al crear tipo",
+				description:
+					error?.response?.data?.message ??
+					error?.response?.data?.errors?.[0]?.msg ??
+					"Error desconocido",
+				variant: "destructive",
+			});
 			console.error("Error adding type:", error);
 		}
 	};
@@ -40,9 +53,21 @@ export function TypesProvider({ children }: { children: ReactNode }) {
 		try {
 			const response = await api.patch(`/types/${id}`, updates);
 			setTypes((prevTypes) =>
-				prevTypes.map((type) => (type.id === id ? response.data : type))
+				prevTypes.map((type) => (type.id === id ? response.data.type : type))
 			);
+			toast({
+				title: "Tipo actualizado",
+				description: response.data.message,
+			});
 		} catch (error) {
+			toast({
+				title: "Error al actualizar tipo",
+				description:
+					error?.response?.data?.message ??
+					error?.response?.data?.errors?.[0]?.msg ??
+					"Error desconocido",
+				variant: "destructive",
+			});
 			console.error("Error updating type:", error);
 		}
 	};
@@ -50,14 +75,22 @@ export function TypesProvider({ children }: { children: ReactNode }) {
 	const deleteType = async (id: number) => {
 		if (!user) return;
 		try {
-			await api.delete(`/types/${id}`);
+			const response = await api.delete(`/types/${id}`);
 			setTypes((prevTypes) => prevTypes.filter((type) => type.id !== id));
-		} catch (error: any) {
+			toast({
+				title: "Tipo eliminado",
+				description: response.data.message,
+			});
+		} catch (error) {
+			toast({
+				title: "Error al eliminar tipo",
+				description:
+					error?.response?.data?.message ??
+					error?.response?.data?.errors?.[0]?.msg ??
+					"Error desconocido",
+				variant: "destructive",
+			});
 			console.error("Error deleting location:", error);
-			return { 
-				success: false, 
-				message: error.response?.data?.message || "Error al eliminar la ubicación" 
-			};
 		}
 	};
 

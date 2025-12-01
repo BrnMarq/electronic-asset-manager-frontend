@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Location } from "@/types";
-import { toast } from "@/hooks/use-toast";
 
 export default function Locations() {
 	const {
@@ -55,58 +54,24 @@ export default function Locations() {
 	}, [fetchLocations]);
 
 	const handleAdd = () => {
-		if (!formData.name) {
-			toast({
-				title: "Error",
-				description: "Por favor completa el nombre",
-				variant: "destructive",
-			});
-			return;
-		}
 		addLocation(formData);
 		setIsAddOpen(false);
 		setFormData({ name: "", description: "" });
-		toast({
-			title: "Ubicación agregada",
-			description: "La ubicación se agregó correctamente",
-		});
 	};
 
 	const handleEdit = () => {
-		if (!editingLocation || !formData.name) {
-			toast({
-				title: "Error",
-				description: "Por favor completa el nombre",
-				variant: "destructive",
-			});
+		if (!editingLocation) {
 			return;
 		}
 		updateLocation(editingLocation.id, formData);
 		setIsEditOpen(false);
 		setEditingLocation(null);
 		setFormData({ name: "", description: "" });
-		toast({
-			title: "Ubicación actualizada",
-			description: "La ubicación se actualizó correctamente",
-		});
 	};
 
 	const handleDelete = async () => {
 		if (deleteId) {
-			const result = await deleteLocation(deleteId);
-			
-			if (result.success) {
-				toast({
-					title: "Ubicación eliminada",
-					description: "La ubicación se eliminó correctamente",
-				});
-			} else {
-				toast({
-					title: "No se pudo eliminar",
-					description: result.message,
-					variant: "destructive",
-				});
-			}
+			await deleteLocation(deleteId);
 			setDeleteId(null);
 		}
 	};
@@ -149,6 +114,7 @@ export default function Locations() {
 									onChange={(e) =>
 										setFormData({ ...formData, name: e.target.value })
 									}
+									required
 								/>
 							</div>
 							<div className='space-y-2'>

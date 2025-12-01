@@ -6,6 +6,7 @@ import {
 	ReactNode,
 } from "react";
 import { User, UserForm, UsersContextType } from "@/types";
+import { toast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthContext";
 import api from "@/lib/axios";
 
@@ -38,8 +39,21 @@ export function UsersProvider({ children }: { children: ReactNode }) {
 				...data,
 				role_id: ROLE_MAP[data.role as keyof typeof ROLE_MAP],
 			});
-			setUsers((prev) => [...prev, response.data]);
+			setUsers((prev) => [...prev, response.data.user]);
+
+			toast({
+				title: "Usuario añadido",
+				description: response.data.message,
+			});
 		} catch (error) {
+			toast({
+				title: "Error al crear usuario",
+				description:
+					error?.response?.data?.message ??
+					error?.response?.data?.errors?.[0]?.msg ??
+					"Error desconocido",
+				variant: "destructive",
+			});
 			console.error("Error adding user:", error);
 		}
 	};
@@ -55,25 +69,44 @@ export function UsersProvider({ children }: { children: ReactNode }) {
 				role_id: ROLE_MAP[data.role as keyof typeof ROLE_MAP],
 			});
 			setUsers((prev) =>
-				prev.map((loc) => (loc.id === id ? response.data : loc))
+				prev.map((loc) => (loc.id === id ? response.data.user : loc))
 			);
+			toast({
+				title: "Usuario actualizado",
+				description: response.data.message,
+			});
 		} catch (error) {
+			toast({
+				title: "Error al actualizar usuario",
+				description:
+					error?.response?.data?.message ??
+					error?.response?.data?.errors?.[0]?.msg ??
+					"Error desconocido",
+				variant: "destructive",
+			});
 			console.error("Error updating user:", error);
 		}
 	};
 
 	const deleteUser = async (id: number) => {
-		if (!user) return { success: false, message: "No autenticado" };
+		if (!user) return;
 		try {
-			await api.delete(`/users/${id}`);
+			const response = await api.delete(`/users/${id}`);
 			setUsers((prev) => prev.filter((loc) => loc.id !== id));
-			return { success: true };
-		} catch (error: any) {
+			toast({
+				title: "Usuario eliminado",
+				description: response.data.message,
+			});
+		} catch (error) {
+			toast({
+				title: "Error al eliminar usuario",
+				description:
+					error?.response?.data?.message ??
+					error?.response?.data?.errors?.[0]?.msg ??
+					"Error desconocido",
+				variant: "destructive",
+			});
 			console.error("Error deleting user:", error);
-			return { 
-				success: false, 
-				message: error.response?.data?.message || "Error al eliminar el usuario" 
-			};
 		}
 	};
 

@@ -37,7 +37,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { User, UserForm, UserRole } from "@/types";
-import { toast } from "@/hooks/use-toast";
 
 const ROLE_NAME_MAP = {
 	admin: "Administrador",
@@ -78,14 +77,6 @@ export default function Users() {
 	}, [isAddOpen]);
 
 	const handleAdd = () => {
-		if (!formData.username || !formData.email) {
-			toast({
-				title: "Error",
-				description: "Por favor completa todos los campos",
-				variant: "destructive",
-			});
-			return;
-		}
 		addUser(formData);
 		setIsAddOpen(false);
 		setFormData({
@@ -96,21 +87,9 @@ export default function Users() {
 			password: "",
 			role: "inventory",
 		});
-		toast({
-			title: "Usuario agregado",
-			description: "El usuario se agregó correctamente",
-		});
 	};
 
 	const handleEdit = () => {
-		if (!editingUser || !formData.username || !formData.email) {
-			toast({
-				title: "Error",
-				description: "Por favor completa todos los campos",
-				variant: "destructive",
-			});
-			return;
-		}
 		updateUser(editingUser.id, formData);
 		setIsEditOpen(false);
 		setEditingUser(null);
@@ -122,28 +101,11 @@ export default function Users() {
 			password: "",
 			role: "inventory",
 		});
-		toast({
-			title: "Usuario actualizado",
-			description: "El usuario se actualizó correctamente",
-		});
 	};
 
 	const handleDelete = async () => {
 		if (deleteId) {
-			const result = await deleteUser(deleteId);
-			
-			if (result.success) {
-				toast({
-					title: "Usuario eliminado",
-					description: "El usuario se eliminó correctamente",
-				});
-			} else {
-				toast({
-					title: "No se pudo eliminar",
-					description: result.message,
-					variant: "destructive",
-				});
-			}
+			await deleteUser(deleteId);
 			setDeleteId(null);
 		}
 	};
@@ -190,6 +152,7 @@ export default function Users() {
 									onChange={(e) =>
 										setFormData({ ...formData, username: e.target.value })
 									}
+									required
 								/>
 							</div>
 							<div className='space-y-2'>
@@ -200,6 +163,7 @@ export default function Users() {
 									onChange={(e) =>
 										setFormData({ ...formData, first_name: e.target.value })
 									}
+									required
 								/>
 							</div>
 							<div className='space-y-2'>
@@ -210,6 +174,7 @@ export default function Users() {
 									onChange={(e) =>
 										setFormData({ ...formData, last_name: e.target.value })
 									}
+									required
 								/>
 							</div>
 							<div className='space-y-2'>
@@ -221,6 +186,7 @@ export default function Users() {
 									onChange={(e) =>
 										setFormData({ ...formData, email: e.target.value })
 									}
+									required
 								/>
 							</div>
 							<div className='space-y-2'>
@@ -230,6 +196,7 @@ export default function Users() {
 									onValueChange={(value: UserRole) =>
 										setFormData({ ...formData, role: value })
 									}
+									required
 								>
 									<SelectTrigger>
 										<SelectValue />
@@ -250,6 +217,7 @@ export default function Users() {
 									onChange={(e) =>
 										setFormData({ ...formData, password: e.target.value })
 									}
+									required
 								/>
 							</div>
 							<Button onClick={handleAdd} className='w-full'>
@@ -322,6 +290,7 @@ export default function Users() {
 								onChange={(e) =>
 									setFormData({ ...formData, username: e.target.value })
 								}
+								required
 							/>
 						</div>
 						<div className='space-y-2'>
@@ -332,6 +301,7 @@ export default function Users() {
 								onChange={(e) =>
 									setFormData({ ...formData, first_name: e.target.value })
 								}
+								required
 							/>
 						</div>
 						<div className='space-y-2'>
@@ -342,6 +312,7 @@ export default function Users() {
 								onChange={(e) =>
 									setFormData({ ...formData, last_name: e.target.value })
 								}
+								required
 							/>
 						</div>
 						<div className='space-y-2'>
@@ -353,6 +324,7 @@ export default function Users() {
 								onChange={(e) =>
 									setFormData({ ...formData, email: e.target.value })
 								}
+								required
 							/>
 						</div>
 
@@ -363,6 +335,7 @@ export default function Users() {
 								onValueChange={(value: UserRole) =>
 									setFormData({ ...formData, role: value })
 								}
+								required
 							>
 								<SelectTrigger>
 									<SelectValue />
