@@ -425,7 +425,7 @@ export default function AssetDialog({
 								</div>
 							</div>
 
-							{asset && (
+							{/* {asset && (
 								<div className='space-y-2 pt-2'>
 									<Label htmlFor='change_reason'>
 										Motivo del Cambio (para historial)
@@ -435,7 +435,7 @@ export default function AssetDialog({
 										placeholder='Ej: Mantenimiento, Upgrade, etc.'
 									/>
 								</div>
-							)}
+							)} */}
 
 							<DialogFooter className='flex justify-between pt-4'>
 								<div>

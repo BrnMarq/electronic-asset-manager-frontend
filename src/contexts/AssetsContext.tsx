@@ -22,6 +22,11 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 	const [assetsInfo, setAssetsInfo] = useState<AssetInfo>({
 		assets: [],
 		total: 0,
+		activeAssets: 0,        
+		inactiveAssets: 0,      
+		decommissionedAssets: 0,
+		page: 1,
+		limit: 10,
 	});
 
 	const [changelog, setChangelog] = useState<ChangelogEntry[]>([]);

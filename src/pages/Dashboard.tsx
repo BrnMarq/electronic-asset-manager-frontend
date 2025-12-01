@@ -13,10 +13,13 @@ import { Badge } from "@/components/ui/badge";
 export default function Dashboard() {
 	const { assetsInfo } = useAssets();
 	const { user } = useAuth();
+	
 	const assets = assetsInfo.assets;
+	
 
-	const activeAssets = assets.filter((a) => a.status === "active").length;
-	const inactiveAssets = assets.filter((a) => a.status === "inactive").length;
+	const totalAssets = assetsInfo.total; 
+	const activeAssets = assetsInfo.activeAssets || 0;
+	const inactiveAssets = totalAssets - activeAssets || 0;
 	const decommissionedAssets = assets.filter(
 		(a) => a.status === "decommissioned"
 	).length;
@@ -61,7 +64,7 @@ export default function Dashboard() {
 						<Package className='h-4 w-4 text-muted-foreground' />
 					</CardHeader>
 					<CardContent>
-						<div className='text-2xl font-bold'>{assets.length}</div>
+						<div className='text-2xl font-bold'>{totalAssets}</div>
 						<p className='text-xs text-muted-foreground'>
 							Registrados en sistema
 						</p>

@@ -97,6 +97,11 @@ export interface Asset {
 export interface AssetInfo {
 	assets: Asset[];
 	total: number;
+	activeAssets: number;
+	inactiveAssets: number;
+	decommissionedAssets: number;
+	page: number;
+	limit: number;
 }
 
 export interface ChangelogEntry {
