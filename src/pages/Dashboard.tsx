@@ -1,3 +1,4 @@
+import { useEffect, useLayoutEffect } from "react";
 import { useAssets } from "@/contexts/AssetsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -11,21 +12,12 @@ import { Package, TrendingUp, AlertCircle, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
-	const { assetsInfo } = useAssets();
+	const { assetsStats, fetchStats } = useAssets();
 	const { user } = useAuth();
-	
-	const assets = assetsInfo.assets;
-	
 
-	const totalAssets = assetsInfo.total; 
-	const activeAssets = assetsInfo.activeAssets || 0;
-	const inactiveAssets = totalAssets - activeAssets || 0;
-	const decommissionedAssets = assets.filter(
-		(a) => a.status === "decommissioned"
-	).length;
-	const totalCost = assets.reduce((sum, a) => sum + a.cost, 0);
-
-	const recentChanges = [];
+	useEffect(() => {
+		fetchStats();
+	}, [fetchStats]);
 
 	const getActionBadge = (action: string) => {
 		const variants: Record<
@@ -64,7 +56,9 @@ export default function Dashboard() {
 						<Package className='h-4 w-4 text-muted-foreground' />
 					</CardHeader>
 					<CardContent>
-						<div className='text-2xl font-bold'>{totalAssets}</div>
+						<div className='text-2xl font-bold'>
+							{assetsStats.active + assetsStats.inactive}
+						</div>
 						<p className='text-xs text-muted-foreground'>
 							Registrados en sistema
 						</p>
@@ -80,7 +74,7 @@ export default function Dashboard() {
 					</CardHeader>
 					<CardContent>
 						<div className='text-2xl font-bold text-success'>
-							{activeAssets}
+							{assetsStats.active}
 						</div>
 						<p className='text-xs text-muted-foreground'>En operación</p>
 					</CardContent>
@@ -95,7 +89,7 @@ export default function Dashboard() {
 					</CardHeader>
 					<CardContent>
 						<div className='text-2xl font-bold text-warning'>
-							{inactiveAssets}
+							{assetsStats.inactive}
 						</div>
 						<p className='text-xs text-muted-foreground'>Fuera de servicio</p>
 					</CardContent>
@@ -107,9 +101,7 @@ export default function Dashboard() {
 						<TrendingUp className='h-4 w-4 text-muted-foreground' />
 					</CardHeader>
 					<CardContent>
-						<div className='text-2xl font-bold'>
-							${totalCost.toLocaleString()}
-						</div>
+						<div className='text-2xl font-bold'>${assetsStats.cost}</div>
 						<p className='text-xs text-muted-foreground'>
 							Inversión en activos
 						</p>
@@ -117,7 +109,7 @@ export default function Dashboard() {
 				</Card>
 			</div>
 
-			<Card className='shadow-md'>
+			{/* <Card className='shadow-md'>
 				<CardHeader>
 					<CardTitle>Actividad Reciente</CardTitle>
 					<CardDescription>
@@ -156,7 +148,7 @@ export default function Dashboard() {
 						</div>
 					)}
 				</CardContent>
-			</Card>
+			</Card> */}
 		</div>
 	);
 }

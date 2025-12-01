@@ -104,6 +104,12 @@ export interface AssetInfo {
 	limit: number;
 }
 
+export interface AssetStats {
+	cost: number;
+	active: number;
+	inactive: number;
+}
+
 export interface ChangelogEntry {
 	id: number;
 	asset_id: number;
@@ -144,7 +150,9 @@ export interface AuthContextType {
 
 export interface AssetsContextType {
 	assetsInfo: AssetInfo;
+	assetsStats: AssetStats;
 	changelog: ChangelogEntry[];
+	fetchStats: () => void;
 	fetchAssets: (page?: number, limit?: number, filters?: AssetFilter) => void;
 	fetchAssetHistory: (id: number) => Promise<ChangelogEntry[]>;
 	fetchChangelog: () => Promise<void>;

@@ -10,6 +10,7 @@ import {
 	AssetForm,
 	AssetsContextType,
 	ChangelogEntry,
+	AssetStats,
 } from "@/types";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthContext";
@@ -28,8 +29,23 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 		page: 1,
 		limit: 10,
 	});
+	const [assetsStats, setAssetsStats] = useState<AssetStats>({
+		inactive: 0,
+		active: 0,
+		cost: 0,
+	});
 
 	const [changelog, setChangelog] = useState<ChangelogEntry[]>([]);
+
+	const fetchStats = useCallback(async () => {
+		if (!user) return;
+		try {
+			const response = await api.get("/assets/stats");
+			setAssetsStats(response.data);
+		} catch (error) {
+			console.error("Error fetching stats:", error);
+		}
+	}, [user]);
 
 	const fetchChangelog = useCallback(async () => {
 		if (!user) return;
@@ -167,7 +183,9 @@ export function AssetsProvider({ children }: { children: ReactNode }) {
 		<AssetsContext.Provider
 			value={{
 				assetsInfo,
+				assetsStats,
 				changelog,
+				fetchStats,
 				fetchAssets,
 				fetchChangelog,
 				fetchAssetHistory,
